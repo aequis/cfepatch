@@ -48,7 +48,11 @@
  *   Set_Path_Overlap -- Sets the overlap bit for given cell                                   *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-#include	"function.h"
+#include <algorithm>
+#include <unordered_map>
+#include <vector>
+#include "function.h"
+
 //#include	<string.h>
 
 /*
@@ -504,6 +508,123 @@ bool FootClass::Register_Cell(PathType *path, CELL cell, FacingType dir, int cos
 }
 #endif
 
+int Manhattan_Cell_Distance_Estimate(const CELL source, const CELL dest)
+{
+	return abs(Cell_X(dest) - Cell_X(source)) + abs(Cell_Y(dest) - Cell_Y(source));
+}
+
+int Euclidian_Cell_Distance_Estimate(const CELL source, const CELL dest)
+{
+	const float x = abs(Cell_X(dest) - Cell_X(source));
+	const float y = abs(Cell_Y(dest) - Cell_Y(source));
+	return static_cast<int>(sqrtf(x * x + y * y) + 0.5f);
+}
+
+PathType* FootClass::Find_Path_AStar(const CELL source, const CELL dest, const int maxLen, const MoveType threshhold, const int threat, FacingType* const final_moves)
+{
+	struct AStarCell
+	{
+		AStarCell* prev = nullptr;
+		CELL       position = 0;
+		int        cell_distance_from_start = 0;
+		int        cost_from_start = 0;
+		int        estimated_cost_to_end = 0;
+	};
+
+	const auto inverse_node_sort = [](const AStarCell* const lhs, const AStarCell* const rhs)
+	{
+		return (lhs->cost_from_start + lhs->estimated_cost_to_end) > (rhs->cost_from_start + rhs->estimated_cost_to_end);
+	};
+	
+	//cfehunter 6th June 2020
+	//I'm mimmicking the behaviour of Find_Path here by returning a non-const pointer to a static variable.
+	//Feels inadvisable, but I want to make minimal changes at this point.
+	static PathType s_path;
+	s_path.Start = source;
+	s_path.Cost = 0;
+	s_path.Length = 0;
+	s_path.Command = final_moves;
+	s_path.Command[0] = END;
+	s_path.Overlap = MainOverlap;
+	s_path.LastOverlap = -1;
+	s_path.LastFixup = -1;
+
+	//General error case early exits
+	if (maxLen <= 0 || source == dest)
+	{
+		return &s_path;
+	}
+
+	std::unordered_map<CELL, AStarCell> visited_cells;
+	std::vector<AStarCell*> open_list;
+	
+	//Add the source cell to the open list
+	open_list.push_back(&visited_cells.emplace(source, AStarCell()).first->second);
+	open_list.back()->position = source;
+
+	AStarCell* dest_result = nullptr;
+
+	while (!open_list.empty())
+	{
+		AStarCell& prev_cell = *open_list.back();
+		open_list.pop_back();
+
+		if (prev_cell.position == dest)
+		{
+			dest_result = &prev_cell;
+			break;
+		}
+		
+		for (FacingType facing = FACING_FIRST; facing < FACING_COUNT; ++facing)
+		{
+			const CELL adjacent_cell_id = Adjacent_Cell(prev_cell.position, facing);
+
+			//Passable cell returns 0 if the object can't enter the cell from this direction
+			int cell_cost = Passable_Cell(adjacent_cell_id, facing, threat, threshhold);
+			if (cell_cost)
+			{
+				cell_cost += prev_cell.cost_from_start;
+				auto emplace_result = visited_cells.try_emplace(adjacent_cell_id);
+				AStarCell& current_cell = emplace_result.first->second;
+				if (emplace_result.second || cell_cost < current_cell.cost_from_start)
+				{
+					current_cell.position = adjacent_cell_id;
+					current_cell.prev = &prev_cell;
+					current_cell.cell_distance_from_start = prev_cell.cell_distance_from_start + 1;
+					current_cell.cost_from_start = cell_cost;
+					current_cell.estimated_cost_to_end = Euclidian_Cell_Distance_Estimate(adjacent_cell_id, dest);
+
+					//Insert the new node before the first item that is *NOT* greater than it. Which should leave the list with the lowest cost nodes at the back.
+					open_list.insert(std::lower_bound(open_list.begin(), open_list.end(), &current_cell, inverse_node_sort), &current_cell);
+				}
+			}
+		}
+		
+	}
+
+	if (dest_result)
+	{
+		//Cost is used for comparing paths with different threat thesholds, so use the overall cost regardless of truncation
+		s_path.Cost = dest_result->cost_from_start;
+
+		//Scrub back to the max path length to store
+		while (dest_result->prev && dest_result->cell_distance_from_start > maxLen)
+		{
+			dest_result = dest_result->prev;
+		}
+
+		s_path.Command[dest_result->cell_distance_from_start] = END;
+		s_path.Length = dest_result->cell_distance_from_start;
+
+		for (; dest_result->prev != nullptr; dest_result = dest_result->prev)
+		{
+			const AStarCell& prev_node = *dest_result->prev;
+			s_path.Command[prev_node.cell_distance_from_start] = CELL_FACING(prev_node.position, dest_result->position);
+		}
+	}
+
+	return &s_path;
+}
 
 /***********************************************************************************************
  * Find_Path -- Find a path from point a to point b.                                           *
@@ -571,6 +692,8 @@ PathType * FootClass::Find_Path(CELL dest, FacingType *final_moves, int maxlen, 
 	} else {
 		unit_threat = threat = -1;
 	}
+
+	return Find_Path_AStar(Coord_Cell(Coord), dest, maxlen, threshhold, threat, final_moves);
 
 	StartLocation = source;
 	DestLocation = dest;
