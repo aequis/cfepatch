@@ -513,22 +513,26 @@ int Manhattan_Cell_Distance_Estimate(const CELL source, const CELL dest)
 	return abs(Cell_X(dest) - Cell_X(source)) + abs(Cell_Y(dest) - Cell_Y(source));
 }
 
-int Euclidian_Cell_Distance_Estimate(const CELL source, const CELL dest)
+float Euclidian_Cell_Distance_Estimate(const CELL source, const CELL dest)
 {
 	const float x = abs(Cell_X(dest) - Cell_X(source));
 	const float y = abs(Cell_Y(dest) - Cell_Y(source));
-	return static_cast<int>(sqrtf(x * x + y * y) + 0.5f);
+	return sqrtf(x * x + y * y);
 }
 
-PathType* FootClass::Find_Path_AStar(const CELL source, const CELL dest, const int maxLen, const MoveType threshhold, const int threat, FacingType* const final_moves)
+//#pragma optimize("", off)
+
+bool FootClass::Find_Path_AStar(PathType& result_path, const CELL source, CELL dest, const int maxLen, const MoveType threshhold, const int threat)
 {
+	static const int AStarCutoffDistance = 3;
+
 	struct AStarCell
 	{
 		AStarCell* prev = nullptr;
 		CELL       position = 0;
 		int        cell_distance_from_start = 0;
 		int        cost_from_start = 0;
-		int        estimated_cost_to_end = 0;
+		float      estimated_cost_to_end = 0;
 	};
 
 	const auto inverse_node_sort = [](const AStarCell* const lhs, const AStarCell* const rhs)
@@ -536,24 +540,25 @@ PathType* FootClass::Find_Path_AStar(const CELL source, const CELL dest, const i
 		return (lhs->cost_from_start + lhs->estimated_cost_to_end) > (rhs->cost_from_start + rhs->estimated_cost_to_end);
 	};
 	
-	//cfehunter 6th June 2020
-	//I'm mimmicking the behaviour of Find_Path here by returning a non-const pointer to a static variable.
-	//Feels inadvisable, but I want to make minimal changes at this point.
-	static PathType s_path;
-	s_path.Start = source;
-	s_path.Cost = 0;
-	s_path.Length = 0;
-	s_path.Command = final_moves;
-	s_path.Command[0] = END;
-	s_path.Overlap = MainOverlap;
-	s_path.LastOverlap = -1;
-	s_path.LastFixup = -1;
-
 	//General error case early exits
-	if (maxLen <= 0 || source == dest)
+	if (maxLen <= 0 || source == dest || Euclidian_Cell_Distance_Estimate(source, dest) < AStarCutoffDistance)
 	{
-		return &s_path;
+		return false;
 	}
+
+	//The AI attempts to pathfind directly into buildings for attack commands, which units obviously can't enter according to the game rules.
+	//So if the target is unenterable, just try to get close enough and then fallback to crash and turn
+	FacingType inverse_direction = CELL_FACING(dest, source);
+	for (int remaining_cutoff = AStarCutoffDistance; Can_Enter_Cell(dest) > threshhold && remaining_cutoff > 0; --remaining_cutoff)
+	{
+		dest = Adjacent_Cell(dest, inverse_direction);
+	}
+	if (Can_Enter_Cell(dest) > threshhold)
+	{
+		//Failed to find a suitable cell destination, falllback to blindly walking forward
+		return false;
+	}
+
 
 	std::unordered_map<CELL, AStarCell> visited_cells;
 	std::vector<AStarCell*> open_list;
@@ -605,7 +610,7 @@ PathType* FootClass::Find_Path_AStar(const CELL source, const CELL dest, const i
 	if (dest_result)
 	{
 		//Cost is used for comparing paths with different threat thesholds, so use the overall cost regardless of truncation
-		s_path.Cost = dest_result->cost_from_start;
+		result_path.Cost = dest_result->cost_from_start;
 
 		//Scrub back to the max path length to store
 		while (dest_result->prev && dest_result->cell_distance_from_start > maxLen)
@@ -613,18 +618,28 @@ PathType* FootClass::Find_Path_AStar(const CELL source, const CELL dest, const i
 			dest_result = dest_result->prev;
 		}
 
-		s_path.Command[dest_result->cell_distance_from_start] = END;
-		s_path.Length = dest_result->cell_distance_from_start;
+		result_path.Command[dest_result->cell_distance_from_start] = END;
+		result_path.Length = dest_result->cell_distance_from_start;
 
 		for (; dest_result->prev != nullptr; dest_result = dest_result->prev)
 		{
 			const AStarCell& prev_node = *dest_result->prev;
-			s_path.Command[prev_node.cell_distance_from_start] = CELL_FACING(prev_node.position, dest_result->position);
+			result_path.Command[prev_node.cell_distance_from_start] = CELL_FACING(prev_node.position, dest_result->position);
 		}
-	}
 
-	return &s_path;
+		Optimize_Moves(&result_path, threshhold);
+		if (Debug_Flag || Debug_Find_Path)
+		{
+			Debug_Draw_Path(&result_path);
+		}
+
+		return true;
+	}
+	
+	return false;
 }
+
+//#pragma optimize("", on)
 
 /***********************************************************************************************
  * Find_Path -- Find a path from point a to point b.                                           *
@@ -693,8 +708,6 @@ PathType * FootClass::Find_Path(CELL dest, FacingType *final_moves, int maxlen, 
 		unit_threat = threat = -1;
 	}
 
-	return Find_Path_AStar(Coord_Cell(Coord), dest, maxlen, threshhold, threat, final_moves);
-
 	StartLocation = source;
 	DestLocation = dest;
 
@@ -712,6 +725,11 @@ PathType * FootClass::Find_Path(CELL dest, FacingType *final_moves, int maxlen, 
 	path.LastFixup		= -1;
 
 	memset(path.Overlap, 0, sizeof(MainOverlap));
+
+	if (Find_Path_AStar(path, source, dest, maxlen, threshhold, threat))
+	{
+		return &path;
+	}
 
 	/*
 	** Clear the over lap list and then make sure that our starting position is marked
