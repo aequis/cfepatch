@@ -520,8 +520,6 @@ float Euclidian_Cell_Distance_Estimate(const CELL source, const CELL dest)
 	return sqrtf(x * x + y * y);
 }
 
-//#pragma optimize("", off)
-
 bool FootClass::Find_Path_AStar(PathType& result_path, const CELL source, CELL dest, const int maxLen, const MoveType threshhold, const int threat)
 {
 	static const int AStarCutoffDistance = 3;
@@ -638,8 +636,6 @@ bool FootClass::Find_Path_AStar(PathType& result_path, const CELL source, CELL d
 	
 	return false;
 }
-
-//#pragma optimize("", on)
 
 /***********************************************************************************************
  * Find_Path -- Find a path from point a to point b.                                           *

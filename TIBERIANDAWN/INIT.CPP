@@ -87,7 +87,6 @@ extern bool Server_Remote_Connect(void);
 extern bool Client_Remote_Connect(void);
 extern bool SpawnedFromWChat;
 
-#pragma optimize("", off)
 void Init_CFEPatch()
 {
 	char* const fileBuffer = _ShapeBuffer;
@@ -103,8 +102,6 @@ void Init_CFEPatch()
 		ActiveCFEPatchConfig.EnableOOMRepair = WWGetPrivateProfileInt("FEATURES", "OOM_REPAIR", 0, fileBuffer);
 	}
 }
-
-#pragma optimize("", on)
 
 /***********************************************************************************************
  * Init_Game -- Main game initialization routine.                                              *
