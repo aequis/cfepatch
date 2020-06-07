@@ -80,6 +80,7 @@ struct CFEPatchConfig
 {
 	bool EnableASPathing = false;
 	bool EnableOOMRepair = false;
+	bool EnableRallyPoints = false;
 };
 
 extern CFEPatchConfig ActiveCFEPatchConfig;

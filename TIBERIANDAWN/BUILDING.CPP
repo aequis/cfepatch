@@ -170,6 +170,45 @@ int BuildingClass::Validate(void) const
 #define	Validate()
 #endif
 
+ /***********************************************************************************************
+  * BuildingClass::Can_Have_Rally_Point -- Query if a building can have a rally point.          *
+  *                                                                                             *
+  *    This routine simply checks the buildings type against a hard coded list.                 *
+  *    of buildings that may set a rally point for produced units.                              *
+  *                                                                                             *
+  * INPUT:   None                                                                               *
+  *                                                                                             *
+  * OUTPUT:  True if true false if false                                                        *
+  *                                                                                             *
+  * WARNINGS:   none                                                                            *
+  *                                                                                             *
+  * HISTORY:                                                                                    *
+  *   07/06/2020 cfehunter : Created.                                                           *
+  *=============================================================================================*/
+bool BuildingClass::Can_Have_Rally_Point() const
+{
+	switch (StructType(*this))
+	{
+	case STRUCT_WEAP:
+	case STRUCT_AIRSTRIP:
+	case STRUCT_REPAIR:
+	case STRUCT_BARRACKS:
+	case STRUCT_HAND:
+		return ActiveCFEPatchConfig.EnableRallyPoints;
+	default:
+		return false;
+	}
+}
+
+void BuildingClass::Set_Unselected_By_Player(HouseClass* player)
+{
+	TechnoClass::Set_Unselected_By_Player(player);
+
+	if (RallyPoint && Can_Have_Rally_Point())
+	{
+		Map.Flag_To_Redraw(true);
+	}
+}
 
 /***********************************************************************************************
  * BuildingClass::Receive_Message -- Handle an incoming message to the building.               *
@@ -384,7 +423,18 @@ RadioMessageType BuildingClass::Receive_Message(RadioClass * from, RadioMessageT
 			}
 
 			TechnoClass::Receive_Message(from, message, param);
-			if (*this == STRUCT_WEAP || *this == STRUCT_AIRSTRIP || *this == STRUCT_REPAIR) return(RADIO_RUN_AWAY);
+
+			//Either tell the unit to move to the rally point, or have it run away
+			if (Can_Have_Rally_Point() && RallyPoint) {
+				if (const CELL target = Map.Nearby_Location(RallyPoint)) {
+					static_cast<TechnoClass*>(from)->Assign_Destination(::As_Target(target));
+					from->Assign_Mission(MISSION_MOVE);
+					return RADIO_ROGER;
+				}
+
+				return RADIO_RUN_AWAY;
+			}
+		
 			return(RADIO_ROGER);
 	}
 
@@ -659,9 +709,16 @@ void BuildingClass::Draw_It(int x, int y, WindowNumberType window)
 		}
 	}
 
+	if (RallyPoint && Can_Have_Rally_Point() && Is_Selected_By_Player() && Is_Owned_By_Player())
+	{
+		int startX, startY, endX, endY;
+		Map.Coord_To_Pixel(Coord_Add(Coord, Class->ExitPoint), startX, startY);
+		Map.Coord_To_Pixel(Cell_Coord(RallyPoint), endX, endY);
+		CC_Draw_Line(startX, startY, endX, endY, 4, 1, window);
+	}
+
 	TechnoClass::Draw_It(x, y, window);
 }
-
 
 /***********************************************************************************************
  * BuildingClass::Mark -- Building interface to map rendering system.                          *
@@ -2044,12 +2101,19 @@ void BuildingClass::Active_Click_With(ActionType action, CELL cell)
 		Player_Assign_Mission(MISSION_ATTACK, ::As_Target(cell));
 	}
 
-	if (action == ACTION_MOVE && *this == STRUCT_CONST) {
-		OutList.Add(EventClass(EventClass::ARCHIVE, As_Target(), ::As_Target(cell)));
-		OutList.Add(EventClass(EventClass::SELL, As_Target()));
+	if (action == ACTION_MOVE) {
 
-		COORDINATE coord = Map.Pixel_To_Coord(Get_Mouse_X(), Get_Mouse_Y());
-		OutList.Add(EventClass(ANIM_MOVE_FLASH, PlayerPtr->Class->House, coord));
+		if (*this == STRUCT_CONST) {
+			OutList.Add(EventClass(EventClass::ARCHIVE, As_Target(), ::As_Target(cell)));
+			OutList.Add(EventClass(EventClass::SELL, As_Target()));
+
+			COORDINATE coord = Map.Pixel_To_Coord(Get_Mouse_X(), Get_Mouse_Y());
+			OutList.Add(EventClass(ANIM_MOVE_FLASH, PlayerPtr->Class->House, coord));
+		}
+		else if (Can_Have_Rally_Point()) {
+			RallyPoint = cell;
+			Map.Flag_To_Redraw(true);
+		}
 	}
 }
 
@@ -3062,7 +3126,7 @@ ActionType BuildingClass::What_Action(ObjectClass * object) const
 		action = ACTION_NONE;
 	}
 
-	if (action == ACTION_MOVE) {
+	if (action == ACTION_MOVE && !Can_Have_Rally_Point()) {
 		action = ACTION_NONE;
 	}
 
@@ -3091,7 +3155,7 @@ ActionType BuildingClass::What_Action(CELL cell) const
 	Validate();
 	ActionType action = TechnoClass::What_Action(cell);
 
-	if (action == ACTION_MOVE && (*this != STRUCT_CONST || !Special.IsMCVDeploy)) {
+	if (action == ACTION_MOVE && !Can_Have_Rally_Point() && (*this != STRUCT_CONST || !Special.IsMCVDeploy)) {
 		action = ACTION_NONE;
 	}
 
@@ -3758,7 +3822,7 @@ MoveType BuildingClass::Can_Enter_Cell(CELL cell, FacingType) const
 {
 	Validate();
 
-	if (*this == STRUCT_CONST && IsDown) {
+	if (Can_Have_Rally_Point() || (*this == STRUCT_CONST && IsDown)) {
 		return(Map[cell].Is_Generally_Clear() ? MOVE_OK : MOVE_NO);
 	}
 
@@ -5363,7 +5427,7 @@ CELL BuildingClass::Find_Exit_Cell(TechnoClass const * techno) const
 bool BuildingClass::Can_Player_Move(void) const
 {
 	Validate();
-	return(*this == STRUCT_CONST && (Mission == MISSION_GUARD) && Special.IsMCVDeploy);
+	return Can_Have_Rally_Point() || (*this == STRUCT_CONST && (Mission == MISSION_GUARD) && Special.IsMCVDeploy);
 }
 
 /***********************************************************************************************

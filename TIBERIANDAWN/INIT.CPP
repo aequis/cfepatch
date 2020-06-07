@@ -100,6 +100,7 @@ void Init_CFEPatch()
 
 		ActiveCFEPatchConfig.EnableASPathing = WWGetPrivateProfileInt("FEATURES", "ASTAR_PATHING", 0, fileBuffer);
 		ActiveCFEPatchConfig.EnableOOMRepair = WWGetPrivateProfileInt("FEATURES", "OOM_REPAIR", 0, fileBuffer);
+		ActiveCFEPatchConfig.EnableRallyPoints = WWGetPrivateProfileInt("FEATURES", "RALLY_POINTS", 0, fileBuffer);
 	}
 }
 

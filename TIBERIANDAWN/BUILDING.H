@@ -156,6 +156,12 @@ class BuildingClass : public TechnoClass
 		*/
 		TCountDownTimerClass PlacementDelay;
 
+		//cfehunter 7th June 2020. Took a lot of digging into the allocation
+		//but it looks like memory is initialised to zeros when allocated from the object pools.
+		//So even though this CELL doesn't exist in older saves, it should be zero initialised.
+		//NOTE: /!\ Stole 2 bytes from the save game padding /!\/
+		CELL RallyPoint;
+
 		/*---------------------------------------------------------------------
 		**	Constructors, Destructors, and overloaded operators.
 		*/
@@ -287,6 +293,8 @@ class BuildingClass : public TechnoClass
 		*/
 		int Validate(void) const;
 
+		bool Can_Have_Rally_Point() const;
+		virtual void Set_Unselected_By_Player(HouseClass* player = NULL) override;
 	private:
 		void  Drop_Debris(TARGET source = TARGET_NONE);
 		virtual BulletClass * Fire_At(TARGET target, int which);
@@ -294,7 +302,7 @@ class BuildingClass : public TechnoClass
 		/*
 		** Some additional padding in case we need to add data to the class and maintain backwards compatibility for save/load
 		*/
-		unsigned char SaveLoadPadding[32];
+		unsigned char SaveLoadPadding[30];
 
 		static COORDINATE const CenterOffset[BSIZE_COUNT];
 

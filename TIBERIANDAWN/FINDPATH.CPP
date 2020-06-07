@@ -517,7 +517,7 @@ float Euclidian_Cell_Distance_Estimate(const CELL source, const CELL dest)
 {
 	const float x = abs(Cell_X(dest) - Cell_X(source));
 	const float y = abs(Cell_Y(dest) - Cell_Y(source));
-	return sqrtf(x * x + y * y);
+	return abs(sqrtf(x * x + y * y));
 }
 
 bool FootClass::Find_Path_AStar(PathType& result_path, const CELL source, CELL dest, const int maxLen, const MoveType threshhold, const int threat)
