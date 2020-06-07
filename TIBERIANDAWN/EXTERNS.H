@@ -76,6 +76,12 @@ extern bool Debug_Force_Crash;
 
 extern void const *WarFactoryOverlay;
 
+struct CFEPatchConfig
+{
+	bool EnableASPathing = false;
+};
+
+extern CFEPatchConfig ActiveCFEPatchConfig;
 
 /*
 **	Dynamic global variables (these change or are initialized at run time).

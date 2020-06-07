@@ -87,6 +87,27 @@ extern bool Server_Remote_Connect(void);
 extern bool Client_Remote_Connect(void);
 extern bool SpawnedFromWChat;
 
+#pragma optimize("", off)
+void Init_CFEPatch()
+{
+	char fileBuffer[1024];
+	CCFileClass file("CFEPATCH.INI");
+	memset(fileBuffer, '\0', sizeof(fileBuffer));
+
+	if (file.Is_Available())
+	{
+		file.Read(fileBuffer, sizeof(fileBuffer) - 1);
+		file.Close();
+
+		char value_buf[128];
+		memset(value_buf, '\0', 128);
+		WWGetPrivateProfileString("FEATURES", "ASTAR_PATHING", "", value_buf, sizeof(value_buf), fileBuffer);
+
+		ActiveCFEPatchConfig.EnableASPathing = strcmp(value_buf, "1") == 0;
+	}
+}
+
+#pragma optimize("", on)
 
 /***********************************************************************************************
  * Init_Game -- Main game initialization routine.                                              *
@@ -713,6 +734,8 @@ bool Init_Game(int , char *[])
 	** dialogs are invoked.  (GameSpeed must be synchronized between systems.)
 	*/
 	Options.Load_Settings();
+
+	Init_CFEPatch();
 
 	return(true);
 }

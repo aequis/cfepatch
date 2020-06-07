@@ -726,7 +726,7 @@ PathType * FootClass::Find_Path(CELL dest, FacingType *final_moves, int maxlen, 
 
 	memset(path.Overlap, 0, sizeof(MainOverlap));
 
-	if (Find_Path_AStar(path, source, dest, maxlen, threshhold, threat))
+	if (ActiveCFEPatchConfig.EnableASPathing && Find_Path_AStar(path, source, dest, maxlen, threshhold, threat))
 	{
 		return &path;
 	}
