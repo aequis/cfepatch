@@ -90,20 +90,17 @@ extern bool SpawnedFromWChat;
 #pragma optimize("", off)
 void Init_CFEPatch()
 {
-	char fileBuffer[1024];
+	char* const fileBuffer = _ShapeBuffer;
 	CCFileClass file("CFEPATCH.INI");
-	memset(fileBuffer, '\0', sizeof(fileBuffer));
+	memset(fileBuffer, '\0', _ShapeBufferSize);
 
 	if (file.Is_Available())
 	{
-		file.Read(fileBuffer, sizeof(fileBuffer) - 1);
+		file.Read(fileBuffer, _ShapeBufferSize - 1);
 		file.Close();
 
-		char value_buf[128];
-		memset(value_buf, '\0', 128);
-		WWGetPrivateProfileString("FEATURES", "ASTAR_PATHING", "", value_buf, sizeof(value_buf), fileBuffer);
-
-		ActiveCFEPatchConfig.EnableASPathing = strcmp(value_buf, "1") == 0;
+		ActiveCFEPatchConfig.EnableASPathing = WWGetPrivateProfileInt("FEATURES", "ASTAR_PATHING", 0, fileBuffer);
+		ActiveCFEPatchConfig.EnableOOMRepair = WWGetPrivateProfileInt("FEATURES", "OOM_REPAIR", 0, fileBuffer);
 	}
 }
 

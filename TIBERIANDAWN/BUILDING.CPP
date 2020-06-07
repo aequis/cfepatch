@@ -1085,7 +1085,7 @@ void BuildingClass::AI(void)
 					Strength = Class->MaxStrength;
 					IsRepairing = false;
 				}
-			} else {
+			} else if (!ActiveCFEPatchConfig.EnableOOMRepair) {
 				IsRepairing = false;
 			}
 		}

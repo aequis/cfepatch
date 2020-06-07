@@ -79,6 +79,7 @@ extern void const *WarFactoryOverlay;
 struct CFEPatchConfig
 {
 	bool EnableASPathing = false;
+	bool EnableOOMRepair = false;
 };
 
 extern CFEPatchConfig ActiveCFEPatchConfig;
