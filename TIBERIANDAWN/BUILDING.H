@@ -160,7 +160,9 @@ class BuildingClass : public TechnoClass
 		//but it looks like memory is initialised to zeros when allocated from the object pools.
 		//So even though this CELL doesn't exist in older saves, it should be zero initialised.
 		//NOTE: /!\ Stole 2 bytes from the save game padding /!\/
-		CELL RallyPoint;
+		TARGET RallyPoint;
+
+		TARGET Target_For_Rally_Point() const;
 
 		/*---------------------------------------------------------------------
 		**	Constructors, Destructors, and overloaded operators.

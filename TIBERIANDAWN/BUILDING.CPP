@@ -204,7 +204,7 @@ void BuildingClass::Set_Unselected_By_Player(HouseClass* player)
 {
 	TechnoClass::Set_Unselected_By_Player(player);
 
-	if (RallyPoint && Can_Have_Rally_Point())
+	if (Can_Have_Rally_Point() && RallyPoint)
 	{
 		Map.Flag_To_Redraw(true);
 	}
@@ -425,14 +425,9 @@ RadioMessageType BuildingClass::Receive_Message(RadioClass * from, RadioMessageT
 			TechnoClass::Receive_Message(from, message, param);
 
 			//Either tell the unit to move to the rally point, or have it run away
-			if (Can_Have_Rally_Point() && RallyPoint) {
-				if (const CELL target = Map.Nearby_Location(RallyPoint)) {
-					static_cast<TechnoClass*>(from)->Assign_Destination(::As_Target(target));
-					from->Assign_Mission(MISSION_MOVE);
-					return RADIO_ROGER;
-				}
-
-				return RADIO_RUN_AWAY;
+			if (Can_Have_Rally_Point() && Target_Legal(RallyPoint)) {
+				Queue_Mission(from->As_Target(), MISSION_MOVE, TARGET_NONE, Target_For_Rally_Point());
+				return RADIO_ROGER;
 			}
 		
 			return(RADIO_ROGER);
@@ -709,12 +704,19 @@ void BuildingClass::Draw_It(int x, int y, WindowNumberType window)
 		}
 	}
 
-	if (RallyPoint && Can_Have_Rally_Point() && Is_Selected_By_Player() && Is_Owned_By_Player())
+	if (Can_Have_Rally_Point() && Is_Selected_By_Player() && Is_Owned_By_Player() && RallyPoint && Target_Legal(RallyPoint))
 	{
 		int startX, startY, endX, endY;
 		Map.Coord_To_Pixel(Coord_Add(Coord, Class->ExitPoint), startX, startY);
-		Map.Coord_To_Pixel(Cell_Coord(RallyPoint), endX, endY);
-		CC_Draw_Line(startX, startY, endX, endY, 4, 1, window);
+		Map.Coord_To_Pixel(As_Coord(RallyPoint), endX, endY);
+		
+		GraphicViewPortClass draw_window(LogicPage->Get_Graphic_Buffer(),
+			(WindowList[window][WINDOWX] << 3) + LogicPage->Get_XPos(),
+			WindowList[window][WINDOWY] + LogicPage->Get_YPos(),
+			WindowList[window][WINDOWWIDTH] << 3,
+			WindowList[window][WINDOWHEIGHT]);
+
+		CC_Draw_Line(startX, startY, endX, endY, LTGREEN, 1, window);
 	}
 
 	TechnoClass::Draw_It(x, y, window);
@@ -1766,6 +1768,11 @@ void BuildingClass::Look(bool)
 #endif
 
 
+TARGET BuildingClass::Target_For_Rally_Point() const
+{
+	return Is_Target_Cell(RallyPoint) ? ::As_Target(Map.Nearby_Location(As_Cell(RallyPoint))) : RallyPoint;
+}
+
 /***********************************************************************************************
  * BuildingClass::new -- Allocates a building object from building pool.                       *
  *                                                                                             *
@@ -2074,6 +2081,10 @@ void BuildingClass::Active_Click_With(ActionType action, ObjectClass * object)
 	if (action == ACTION_TOGGLE_PRIMARY && Class->IsFactory) {
 		OutList.Add(EventClass(EventClass::PRIMARY, As_Target()));
 	}
+
+	if (action == ACTION_MOVE && Can_Have_Rally_Point()) {
+		RallyPoint = object->As_Target();
+	}
 }
 
 
@@ -2111,7 +2122,7 @@ void BuildingClass::Active_Click_With(ActionType action, CELL cell)
 			OutList.Add(EventClass(ANIM_MOVE_FLASH, PlayerPtr->Class->House, coord));
 		}
 		else if (Can_Have_Rally_Point()) {
-			RallyPoint = cell;
+			RallyPoint = ::As_Target(cell);
 			Map.Flag_To_Redraw(true);
 		}
 	}

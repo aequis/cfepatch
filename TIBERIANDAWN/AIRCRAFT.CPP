@@ -1126,10 +1126,9 @@ int AircraftClass::Mission_Unload(void)
 
 									if (const BuildingClass* const target_building = As_Building(NavCom))
 									{
-										if (target_building->RallyPoint && target_building->Can_Have_Rally_Point())
+										if (target_building->Can_Have_Rally_Point() && Target_Legal(target_building->RallyPoint))
 										{
-											unit->Assign_Destination(::As_Target(target_building->RallyPoint));
-											unit->Assign_Mission(MISSION_MOVE);
+											Queue_Mission(unit->As_Target(), MISSION_MOVE, TARGET_NONE, target_building->Target_For_Rally_Point());
 										}
 									}
 								}
