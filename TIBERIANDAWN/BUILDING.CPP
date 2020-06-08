@@ -707,15 +707,8 @@ void BuildingClass::Draw_It(int x, int y, WindowNumberType window)
 	if (Can_Have_Rally_Point() && Is_Selected_By_Player() && Is_Owned_By_Player() && RallyPoint && Target_Legal(RallyPoint))
 	{
 		int startX, startY, endX, endY;
-		Map.Coord_To_Pixel(Coord_Add(Coord, Class->ExitPoint), startX, startY);
+		Map.Coord_To_Pixel(Center_Coord(), startX, startY);
 		Map.Coord_To_Pixel(As_Coord(RallyPoint), endX, endY);
-		
-		GraphicViewPortClass draw_window(LogicPage->Get_Graphic_Buffer(),
-			(WindowList[window][WINDOWX] << 3) + LogicPage->Get_XPos(),
-			WindowList[window][WINDOWY] + LogicPage->Get_YPos(),
-			WindowList[window][WINDOWWIDTH] << 3,
-			WindowList[window][WINDOWHEIGHT]);
-
 		CC_Draw_Line(startX, startY, endX, endY, LTGREEN, 1, window);
 	}
 
