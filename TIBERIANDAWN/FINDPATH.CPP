@@ -513,17 +513,78 @@ int Manhattan_Cell_Distance_Estimate(const CELL source, const CELL dest)
 	return abs(Cell_X(dest) - Cell_X(source)) + abs(Cell_Y(dest) - Cell_Y(source));
 }
 
-float Euclidian_Cell_Distance_Estimate(const CELL source, const CELL dest)
+float Euclidian_Cell_Distance_Estimate_Sqrd(const CELL source, const CELL dest)
 {
 	const float x = abs(Cell_X(dest) - Cell_X(source));
 	const float y = abs(Cell_Y(dest) - Cell_Y(source));
-	return abs(sqrtf(x * x + y * y));
+	return abs(x * x + y * y);
+}
+
+float Euclidian_Cell_Distance_Estimate(const CELL source, const CELL dest)
+{
+	return sqrtf(Euclidian_Cell_Distance_Estimate_Sqrd(source, dest));
+}
+
+void Add_Cell_To_Overlap(const CELL cell, unsigned long* const Overlap)
+{
+	Overlap[cell >> 5] |= (1 << ((cell & 31) - 1));
+}
+
+void Remove_Cell_From_Overlap(const CELL cell, unsigned long* const Overlap)
+{
+	Overlap[cell >> 5] &= ~(1 << ((cell & 31) - 1));
+}
+
+bool Is_Cell_In_Overlap(const CELL cell, const unsigned long* const Overlap)
+{
+	return Overlap[cell >> 5] & (1 << ((cell & 31) - 1));
+}
+
+CELL Find_Enterable_Adjacent_Cell(const FootClass& pathingObject, const CELL origin, const MoveType threshhold, const int radius)
+{
+	static std::vector<CELL> openCells;
+	openCells.clear();
+	openCells.push_back(origin);
+
+	memset(MainOverlap, 0, sizeof(MainOverlap));
+	Add_Cell_To_Overlap(origin, MainOverlap);
+
+	const float radiusSqrd = float(radius) * radius;
+
+	while (!openCells.empty())
+	{
+		CELL currentCell = openCells.front();
+		openCells.erase(openCells.begin());
+
+		//Blocked
+		if (pathingObject.Can_Enter_Cell(currentCell) > threshhold)
+		{
+			if (Euclidian_Cell_Distance_Estimate_Sqrd(origin, currentCell) >= radiusSqrd)
+			{
+				//Expand to all adjacent cells
+				for (FacingType facing = FACING_FIRST; facing < FACING_COUNT; ++facing)
+				{
+					const CELL adjacentCell = Adjacent_Cell(currentCell, facing);
+					if (!Is_Cell_In_Overlap(adjacentCell, MainOverlap))
+					{
+						openCells.push_back(adjacentCell);
+						Add_Cell_To_Overlap(adjacentCell, MainOverlap);
+					}
+				}
+			}
+		}
+		else
+		{
+			//Found a passable cell
+			return currentCell;
+		}
+	}
+
+	return 0;
 }
 
 bool FootClass::Find_Path_AStar(PathType& result_path, const CELL source, CELL dest, const int maxLen, const MoveType threshhold, const int threat)
 {
-	static const int AStarCutoffDistance = 3;
-
 	struct AStarCell
 	{
 		AStarCell* prev = nullptr;
@@ -535,28 +596,32 @@ bool FootClass::Find_Path_AStar(PathType& result_path, const CELL source, CELL d
 
 	const auto inverse_node_sort = [](const AStarCell* const lhs, const AStarCell* const rhs)
 	{
-		return (lhs->cost_from_start + lhs->estimated_cost_to_end) > (rhs->cost_from_start + rhs->estimated_cost_to_end);
+		static constexpr float flt_epsilon = std::numeric_limits<float>::epsilon();
+		const float lhs_cost = lhs->cost_from_start + lhs->estimated_cost_to_end;
+		const float rhs_cost = rhs->cost_from_start + rhs->estimated_cost_to_end;
+
+		return lhs_cost > rhs_cost;
 	};
 	
 	//General error case early exits
-	if (maxLen <= 0 || source == dest || Euclidian_Cell_Distance_Estimate(source, dest) < AStarCutoffDistance)
+	if (maxLen <= 0 || source == dest)
 	{
 		return false;
 	}
 
-	//The AI attempts to pathfind directly into buildings for attack commands, which units obviously can't enter according to the game rules.
-	//So if the target is unenterable, just try to get close enough and then fallback to crash and turn
-	FacingType inverse_direction = CELL_FACING(dest, source);
-	for (int remaining_cutoff = AStarCutoffDistance; Can_Enter_Cell(dest) > threshhold && remaining_cutoff > 0; --remaining_cutoff)
-	{
-		dest = Adjacent_Cell(dest, inverse_direction);
-	}
+	//The AI attempts to path to the center of buildings and other objects, which are obviously impassable.
+	//use a simple floodfill to find a nearby passable cell if the target is impassable
 	if (Can_Enter_Cell(dest) > threshhold)
 	{
-		//Failed to find a suitable cell destination, falllback to blindly walking forward
 		return false;
+		//#CFE_TODO: Find out why the floodfill is failing. Particularly with harvesters
+		//Also threat is a thing
+		/*dest = Find_Enterable_Adjacent_Cell(*this, source, threshhold, 4);
+		if (dest == 0)
+		{
+			return false;
+		}*/
 	}
-
 
 	std::unordered_map<CELL, AStarCell> visited_cells;
 	std::vector<AStarCell*> open_list;
