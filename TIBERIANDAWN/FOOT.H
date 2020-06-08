@@ -281,6 +281,7 @@ class FootClass :	public TechnoClass
 		int Passable_Cell(CELL cell, FacingType face, int threat, MoveType threshhold);
 		PathType * Find_Path(CELL dest, FacingType *final_moves, int maxlen, MoveType threshhold);
 		bool Find_Path_AStar(PathType& reuslt_path, const CELL source, CELL dest, const int maxLen, const MoveType threshhold, const int threat);
+		CELL Find_Passable_Position_Near(const CELL target, const int maxRadius, const MoveType threshhold, const int threat);
 		void Debug_Draw_Map(char *txt, CELL start, CELL dest, bool pause);
 		void Debug_Draw_Path(PathType *path);
 		bool Follow_Edge(CELL start, CELL target, PathType *path, FacingType search, FacingType olddir, int threat, int threat_stage, int max_cells, MoveType threshhold);

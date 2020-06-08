@@ -540,53 +540,66 @@ bool Is_Cell_In_Overlap(const CELL cell, const unsigned long* const Overlap)
 	return Overlap[cell >> 5] & (1 << ((cell & 31) - 1));
 }
 
-CELL Find_Enterable_Adjacent_Cell(const FootClass& pathingObject, const CELL origin, const MoveType threshhold, const int radius)
+CELL FootClass::Find_Passable_Position_Near(const CELL target, const int maxRadius, const MoveType threshhold, const int threat)
 {
-	static std::vector<CELL> openCells;
-	openCells.clear();
-	openCells.push_back(origin);
+	if (Passable_Cell(target, FACING_NONE, threat, threshhold)) {
+		return target;
+	}
 
-	memset(MainOverlap, 0, sizeof(MainOverlap));
-	Add_Cell_To_Overlap(origin, MainOverlap);
+	const int targetX = Cell_X(target);
+	const int targetY = Cell_Y(target);
 
-	const float radiusSqrd = float(radius) * radius;
-
-	while (!openCells.empty())
+	const auto validate_cell = [this, target, threat, threshhold](const CELL cell)
 	{
-		CELL currentCell = openCells.front();
-		openCells.erase(openCells.begin());
+		return Map.In_Radar(cell) && Passable_Cell(target, FACING_NONE, threat, threshhold);
+	};
 
-		//Blocked
-		if (pathingObject.Can_Enter_Cell(currentCell) > threshhold)
+	for (int curDistance = 1; curDistance <= maxRadius; ++curDistance)
+	{
+		const int left = targetX - curDistance;
+		const int right = targetX + curDistance;
+		const int top = targetY - curDistance;
+		const int bottom = targetY + curDistance;
+
+		//Test top row
+		for (int x = left; x <= right; ++x)
 		{
-			if (Euclidian_Cell_Distance_Estimate_Sqrd(origin, currentCell) >= radiusSqrd)
-			{
-				//Expand to all adjacent cells
-				for (FacingType facing = FACING_FIRST; facing < FACING_COUNT; ++facing)
-				{
-					const CELL adjacentCell = Adjacent_Cell(currentCell, facing);
-					if (!Is_Cell_In_Overlap(adjacentCell, MainOverlap))
-					{
-						openCells.push_back(adjacentCell);
-						Add_Cell_To_Overlap(adjacentCell, MainOverlap);
-					}
-				}
-			}
+			const CELL currentCell = XY_Cell(x, top);
+			if (validate_cell(currentCell))
+				return currentCell;
 		}
-		else
+
+		//Test bottom row
+		for (int x = left; x <= right; ++x)
 		{
-			//Found a passable cell
-			return currentCell;
+			const CELL currentCell = XY_Cell(x, bottom);
+			if (validate_cell(currentCell))
+				return currentCell;
+		}
+
+		//Test left column
+		for (int y = top + 1; y < bottom; ++y)
+		{
+			const CELL currentCell = XY_Cell(y, left);
+			if (validate_cell(currentCell))
+				return currentCell;
+		}
+
+		//Test the right column
+		for (int y = top + 1; y < bottom; ++y)
+		{
+			const CELL currentCell = XY_Cell(y, right);
+			if (validate_cell(currentCell))
+				return currentCell;
 		}
 	}
 
 	return 0;
 }
 
-bool FootClass::Find_Path_AStar(PathType& result_path, const CELL source, CELL dest, const int maxLen, const MoveType threshhold, const int threat)
+bool FootClass::Find_Path_AStar(PathType& resultPath, const CELL source, CELL dest, const int maxLen, const MoveType threshhold, const int threat)
 {
-	struct AStarCell
-	{
+	struct AStarCell {
 		AStarCell* prev = nullptr;
 		CELL       position = 0;
 		int        cell_distance_from_start = 0;
@@ -594,8 +607,7 @@ bool FootClass::Find_Path_AStar(PathType& result_path, const CELL source, CELL d
 		float      estimated_cost_to_end = 0;
 	};
 
-	const auto inverse_node_sort = [](const AStarCell* const lhs, const AStarCell* const rhs)
-	{
+	const auto inverse_node_sort = [](const AStarCell* const lhs, const AStarCell* const rhs) {
 		static constexpr float flt_epsilon = std::numeric_limits<float>::epsilon();
 		const float lhs_cost = lhs->cost_from_start + lhs->estimated_cost_to_end;
 		const float rhs_cost = rhs->cost_from_start + rhs->estimated_cost_to_end;
@@ -604,23 +616,25 @@ bool FootClass::Find_Path_AStar(PathType& result_path, const CELL source, CELL d
 	};
 	
 	//General error case early exits
-	if (maxLen <= 0 || source == dest)
-	{
+	if (maxLen <= 0 || source == dest) {
 		return false;
 	}
 
-	//The AI attempts to path to the center of buildings and other objects, which are obviously impassable.
-	//use a simple floodfill to find a nearby passable cell if the target is impassable
-	if (Can_Enter_Cell(dest) > threshhold)
-	{
-		return false;
-		//#CFE_TODO: Find out why the floodfill is failing. Particularly with harvesters
-		//Also threat is a thing
-		/*dest = Find_Enterable_Adjacent_Cell(*this, source, threshhold, 4);
-		if (dest == 0)
-		{
+	//Target is impassable, try to account for that by finding a position nearby, or staying still if already close
+	if (!Passable_Cell(dest, FACING_NONE, threat, threshhold)) {
+		static const int impassableCloseEnough = 3;
+		const int distanceToDest = ::Distance(source, dest);
+		if (distanceToDest > impassableCloseEnough) {
+			const CELL nearbyDest = Find_Passable_Position_Near(dest, impassableCloseEnough, threshhold, threat);
+
+			//Failed to find a passable position at or near the target or nearby position is further away or equidistant to our current position, so just stay put
+			if (nearbyDest == 0 || ::Distance(dest, nearbyDest) >= distanceToDest) {
+				return false;
+			}
+		}
+		else {
 			return false;
-		}*/
+		}
 	}
 
 	std::unordered_map<CELL, AStarCell> visited_cells;
@@ -632,19 +646,16 @@ bool FootClass::Find_Path_AStar(PathType& result_path, const CELL source, CELL d
 
 	AStarCell* dest_result = nullptr;
 
-	while (!open_list.empty())
-	{
+	while (!open_list.empty()) {
 		AStarCell& prev_cell = *open_list.back();
 		open_list.pop_back();
 
-		if (prev_cell.position == dest)
-		{
+		if (prev_cell.position == dest) {
 			dest_result = &prev_cell;
 			break;
 		}
 		
-		for (FacingType facing = FACING_FIRST; facing < FACING_COUNT; ++facing)
-		{
+		for (FacingType facing = FACING_FIRST; facing < FACING_COUNT; ++facing) {
 			const CELL adjacent_cell_id = Adjacent_Cell(prev_cell.position, facing);
 
 			//Passable cell returns 0 if the object can't enter the cell from this direction
@@ -670,30 +681,27 @@ bool FootClass::Find_Path_AStar(PathType& result_path, const CELL source, CELL d
 		
 	}
 
-	if (dest_result)
-	{
+	if (dest_result) {
 		//Cost is used for comparing paths with different threat thesholds, so use the overall cost regardless of truncation
-		result_path.Cost = dest_result->cost_from_start;
+		resultPath.Cost = dest_result->cost_from_start;
 
 		//Scrub back to the max path length to store
-		while (dest_result->prev && dest_result->cell_distance_from_start > maxLen)
-		{
+		while (dest_result->prev && dest_result->cell_distance_from_start > maxLen) {
 			dest_result = dest_result->prev;
 		}
 
-		result_path.Command[dest_result->cell_distance_from_start] = END;
-		result_path.Length = dest_result->cell_distance_from_start;
+		resultPath.Command[dest_result->cell_distance_from_start] = END;
+		resultPath.Length = dest_result->cell_distance_from_start;
 
-		for (; dest_result->prev != nullptr; dest_result = dest_result->prev)
-		{
+		for (; dest_result->prev != nullptr; dest_result = dest_result->prev) {
 			const AStarCell& prev_node = *dest_result->prev;
-			result_path.Command[prev_node.cell_distance_from_start] = CELL_FACING(prev_node.position, dest_result->position);
+			resultPath.Command[prev_node.cell_distance_from_start] = CELL_FACING(prev_node.position, dest_result->position);
 		}
 
-		Optimize_Moves(&result_path, threshhold);
+		Optimize_Moves(&resultPath, threshhold);
 		if (Debug_Flag || Debug_Find_Path)
 		{
-			Debug_Draw_Path(&result_path);
+			Debug_Draw_Path(&resultPath);
 		}
 
 		return true;
@@ -787,9 +795,35 @@ PathType * FootClass::Find_Path(CELL dest, FacingType *final_moves, int maxlen, 
 
 	memset(path.Overlap, 0, sizeof(MainOverlap));
 
-	if (ActiveCFEPatchConfig.EnableASPathing && Find_Path_AStar(path, source, dest, maxlen, threshhold, threat))
+	if (ActiveCFEPatchConfig.EnableASPathing)
 	{
-		return &path;
+		int asThreat = threat;
+		bool result = false;
+		do
+		{
+			result = Find_Path_AStar(path, source, dest, maxlen, threshhold, threat);
+
+			if (!result && asThreat != -1) {
+				switch (++threat_stage) {
+				case 0:
+					asThreat = unit_threat >> 1;
+					break;
+
+				case 1:
+					asThreat += unit_threat;
+					break;
+
+				case 2:
+					asThreat = -1;
+					break;
+				}
+			}
+		} while (!result && asThreat != -1);
+
+		if (result)
+		{
+			return &path;
+		}
 	}
 
 	/*
