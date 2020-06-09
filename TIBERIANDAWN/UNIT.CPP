@@ -714,6 +714,14 @@ RadioMessageType UnitClass::Receive_Message(RadioClass * from, RadioMessageType 
 			TarComClass::Receive_Message(from, message, param);
 			return(RADIO_ROGER);
 
+		case RADIO_CANCEL:
+			if ((Mission == MISSION_RETURN || Mission == MISSION_ENTER) && Class->IsToHarvest)
+			{
+				Set_Mission(MISSION_HARVEST);
+				Transmit_Message(RADIO_OVER_OUT);
+			}
+			return RADIO_ROGER;
+
 	}
 	return(TarComClass::Receive_Message(from, message, param));
 }
@@ -2583,6 +2591,14 @@ int UnitClass::Mission_Harvest(void)
 		**	Go and find a Tiberium field to harvest.
 		*/
 		case LOOKING:
+			//cfehunter 09th June 2020. Honestly this should probably be here anyway, but don't change normal behaviour unless the feature is turned on
+			if (ActiveCFEPatchConfig.EnableHarvyQueueJump && Tiberium_Load() == 0x0100) {
+				IsHarvesting = false;
+				Status = FINDHOME;
+				Assign_Target(TARGET_NONE); //Clear out the target or it'll assume it already has a refinery to go towards
+				return 1;
+			}
+
 			IsHarvesting = false;
 			if (Goto_Tiberium()) {
 				IsHarvesting = true;
@@ -2659,7 +2675,13 @@ int UnitClass::Mission_Harvest(void)
 					nearest = Find_Docking_Bay(STRUCT_REFINERY, false);
 					ScenarioInit--;
 					if (nearest) {
-						Assign_Destination(::As_Target(nearest->Nearby_Location(this)));
+
+						if (ActiveCFEPatchConfig.EnableHarvyQueueJump && Transmit_Message(RADIO_HELLO, nearest) == RADIO_ROGER) {
+							Status = HEADINGHOME;
+						}
+						else {
+							Assign_Destination(::As_Target(nearest->Nearby_Location(this)));
+						}
 					}
 				}
 			}

@@ -81,6 +81,8 @@ struct CFEPatchConfig
 	bool EnableASPathing = false;
 	bool EnableOOMRepair = false;
 	bool EnableRallyPoints = false;
+	bool EnableHarvyQueueJump = false;
+	int  HarvyQueueJumpCutoff = 3;
 };
 
 extern CFEPatchConfig ActiveCFEPatchConfig;

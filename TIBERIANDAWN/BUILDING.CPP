@@ -248,6 +248,23 @@ RadioMessageType BuildingClass::Receive_Message(RadioClass * from, RadioMessageT
 			if (Mission == MISSION_HARVEST) {
 				return(RADIO_NEGATIVE);
 			}
+			else if (Class->Type == STRUCT_REFINERY && ActiveCFEPatchConfig.EnableHarvyQueueJump && In_Radio_Contact()) {
+				if (from->What_Am_I() == RTTI_UNIT && *((UnitClass*)from) == UNIT_HARVESTER) {
+
+					UnitClass& currentHarvy = *static_cast<UnitClass*>(Contact_With_Whom());
+					UnitClass& newHarvy     = *static_cast<UnitClass*>(from);
+
+					const int currentHarvyDistance = currentHarvy.Distance(this);
+					if (currentHarvyDistance > ActiveCFEPatchConfig.HarvyQueueJumpCutoff && newHarvy.Distance(this) < currentHarvyDistance) {
+
+						//Kick the current harvester out
+						Transmit_Message(RADIO_CANCEL, &currentHarvy);
+
+						//Accept the new one
+						return(TechnoClass::Receive_Message(from, message, param));
+					}
+				}
+			}
 			break;
 
 		case RADIO_CAN_LOAD:
