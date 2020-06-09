@@ -83,6 +83,7 @@ struct CFEPatchConfig
 	bool EnableRallyPoints = false;
 	bool EnableHarvyQueueJump = false;
 	int  HarvyQueueJumpCutoff = 3;
+	int  TibGrowthScale = 1;
 };
 
 extern CFEPatchConfig ActiveCFEPatchConfig;
