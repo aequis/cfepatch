@@ -1128,7 +1128,8 @@ int AircraftClass::Mission_Unload(void)
 									{
 										if (target_building->Can_Have_Rally_Point() && Target_Legal(target_building->RallyPoint))
 										{
-											Queue_Mission(unit->As_Target(), MISSION_MOVE, TARGET_NONE, target_building->Target_For_Rally_Point());
+											unit->Set_Mission(MISSION_MOVE);
+											unit->Assign_Destination(target_building->Target_For_Rally_Point());
 										}
 									}
 								}

@@ -770,6 +770,17 @@ CCDebugString (flip);
 			}
 			break;
 
+		//CFE Patch events
+		case SET_RALLY:
+			if (BuildingClass* const building = As_Building(Data.NavCom.Whom))
+			{
+				if (building->RallyPoint != Data.NavCom.Where)
+				{
+					building->RallyPoint = Data.NavCom.Where;
+					Map.Flag_To_Redraw(true);
+				}
+			}
+			break;
 		/*
 		**	Default: do nothing.
 		*/

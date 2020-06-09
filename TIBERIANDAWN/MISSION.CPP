@@ -330,7 +330,7 @@ bool MissionClass::Commence(void)
  *=============================================================================================*/
 void MissionClass::Assign_Mission(MissionType order)
 {
-	if (order == MISSION_NONE || MissionQueue == order) return;
+	if (order == MISSION_NONE || Mission == order) return;
 
 //	Status = 0;
 	MissionQueue = order;

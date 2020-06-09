@@ -191,7 +191,6 @@ bool BuildingClass::Can_Have_Rally_Point() const
 	{
 	case STRUCT_WEAP:
 	case STRUCT_AIRSTRIP:
-	case STRUCT_REPAIR:
 	case STRUCT_BARRACKS:
 	case STRUCT_HAND:
 		return ActiveCFEPatchConfig.EnableRallyPoints;
@@ -443,7 +442,8 @@ RadioMessageType BuildingClass::Receive_Message(RadioClass * from, RadioMessageT
 
 			//Either tell the unit to move to the rally point, or have it run away
 			if (Can_Have_Rally_Point() && Target_Legal(RallyPoint)) {
-				Queue_Mission(from->As_Target(), MISSION_MOVE, TARGET_NONE, Target_For_Rally_Point());
+				from->Set_Mission(MISSION_MOVE);
+				static_cast<FootClass*>(from)->Assign_Destination(Target_For_Rally_Point());
 				return RADIO_ROGER;
 			}
 		
@@ -910,6 +910,11 @@ BulletClass * BuildingClass::Fire_At(TARGET target, int which)
 	}
 
 	return(bullet);
+}
+
+void BuildingClass::Player_Set_Rally_Point(TARGET target)
+{
+	OutList.Add(EventClass(EventClass::SET_RALLY, As_Target(), target));
 }
 
 
@@ -2093,7 +2098,7 @@ void BuildingClass::Active_Click_With(ActionType action, ObjectClass * object)
 	}
 
 	if (action == ACTION_MOVE && Can_Have_Rally_Point()) {
-		RallyPoint = object->As_Target();
+		Player_Set_Rally_Point(object->As_Target());
 	}
 }
 
@@ -2132,8 +2137,7 @@ void BuildingClass::Active_Click_With(ActionType action, CELL cell)
 			OutList.Add(EventClass(ANIM_MOVE_FLASH, PlayerPtr->Class->House, coord));
 		}
 		else if (Can_Have_Rally_Point()) {
-			RallyPoint = ::As_Target(cell);
-			Map.Flag_To_Redraw(true);
+			Player_Set_Rally_Point(::As_Target(cell));
 		}
 	}
 }
@@ -2160,6 +2164,11 @@ void BuildingClass::Assign_Target(TARGET target)
 	Validate();
 	if (*this != STRUCT_SAM && !In_Range(target, 0)) {
 		target = TARGET_NONE;
+	}
+
+	if (Can_Have_Rally_Point() && Target_Legal(target)) {
+		RallyPoint = target;
+		return;
 	}
 
 	TechnoClass::Assign_Target(target);

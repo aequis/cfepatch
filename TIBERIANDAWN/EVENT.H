@@ -84,6 +84,10 @@ class EventClass
 			ARCHIVE,				// Updates archive target on specified object.
 			TIMING,				// new timing values for all systems to use
 			PROCESS_TIME,		// a system's average processing time, in ticks per frame
+
+			//CFE Patch events
+			SET_RALLY,
+
 			LAST_EVENT,			// one past the last event
 		} EventType;
 
@@ -193,7 +197,6 @@ class EventClass
 			struct {
 				unsigned short AverageTicks;
 			} ProcessTime;
-
 		} Data;
 
 		//-------------- Functions ---------------------
