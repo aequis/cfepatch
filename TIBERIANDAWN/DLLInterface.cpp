@@ -1697,6 +1697,7 @@ extern "C" __declspec(dllexport) bool __cdecl CNC_Save_Load(bool save, const cha
 		result = Load_Game(file_path_and_name);
 		
 		DLLExportClass::Set_Player_Context(DLLExportClass::GlyphxPlayerIDs[0], true);
+		DLLExportClass::Recalculate_Placement_Distances();
 		Set_Logic_Page(SeenBuff);
 		VisiblePage.Clear();
 		Map.Flag_To_Redraw(true);
@@ -4357,6 +4358,13 @@ void DLLExportClass::Calculate_Placement_Distances(BuildingTypeClass* placement_
 					CELL adjcell = Adjacent_Cell(cell, facing);
 					if (Map.In_Radar(adjcell)) {
 						placement_distance[adjcell] = min(placement_distance[adjcell], 1U);
+
+						if (ActiveCFEPatchConfig.EnableBuildingGap) {
+							for (FacingType adjFacing = FACING_FIRST; adjFacing < FACING_COUNT; ++adjFacing) {
+								const CELL extraAdjCell = Adjacent_Cell(adjcell, adjFacing);
+								if (Map.In_Radar(extraAdjCell)) placement_distance[extraAdjCell] = min(placement_distance[extraAdjCell], 2u);
+							}
+						}
 					}
 				}
 			}
@@ -4477,7 +4485,7 @@ bool DLLExportClass::Passes_Proximity_Check(CELL cell_in, BuildingTypeClass *pla
 			return false;
 		}
 
-		if (placement_distance[center_cell] <= 1U) {
+		if (placement_distance[center_cell] <= (ActiveCFEPatchConfig.EnableBuildingGap ? 2U : 1U)) {
 			return true;
 		}
 	}

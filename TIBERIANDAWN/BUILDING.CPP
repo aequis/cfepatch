@@ -5489,6 +5489,19 @@ bool BuildingClass::Passes_Proximity_Check(CELL homecell)
 		return(true);
 	}
 
+	const auto Is_Cell_Friendly = [house = House->Class->House](const CELL cell) {
+		if (Map[cell].Owner == house) {
+			return(true);
+		}
+
+		if (const BuildingClass* const base = Map[cell].Cell_Building()) {
+			if (base->House->Class->House == house) {
+				return true;
+			}
+		}
+		return false;
+	};
+
 	/*
 	**	Scan through all cells that the building foundation would cover. If any adjacent
 	**	cells to these are of friendly persuasion, then consider the proximity check to
@@ -5501,22 +5514,21 @@ bool BuildingClass::Passes_Proximity_Check(CELL homecell)
 		if (!Map.In_Radar(cell)) return(false);
 
 		for (FacingType facing = FACING_N; facing < FACING_COUNT; facing++) {
-			CELL	newcell = Adjacent_Cell(cell, facing);
+			const CELL newcell = Adjacent_Cell(cell, facing);
 
-			BuildingClass * base = Map[newcell].Cell_Building();
-
-			/*
-			**	The special cell ownership flag allows building adjacent
-			**	to friendly walls and bibs even though there is no official
-			**	building located there.
-			*/
-			if (Map[newcell].Owner == House->Class->House) {
-				return(true);
+			if (Map.In_Radar(newcell)) {
+				if (Is_Cell_Friendly(newcell)) {
+					return true;
+				}
+				else if (ActiveCFEPatchConfig.EnableBuildingGap) {
+					for (FacingType adjFacing = FACING_FIRST; adjFacing < FACING_COUNT; ++adjFacing) {
+						const CELL adjcell = Adjacent_Cell(newcell, adjFacing);
+						if (Map.In_Radar(adjcell) && Is_Cell_Friendly(adjcell))
+							return true;
+					}
+				}
 			}
 
-			if (base && base->House->Class->House == House->Class->House) {
-				return(true);
-			}
 		}
 	}
 	return(false);
