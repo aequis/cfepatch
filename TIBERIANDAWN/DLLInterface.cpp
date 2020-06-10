@@ -25,8 +25,7 @@
 ** 
 */
 
-
-
+#include <algorithm>
 #include <stdio.h>
 
 #include	"function.h"
@@ -4360,9 +4359,10 @@ void DLLExportClass::Calculate_Placement_Distances(BuildingTypeClass* placement_
 				
 				for (int adjY = y - buildingGap, adjMaxY = y + buildingGap; adjY <= adjMaxY; ++adjY) {
 					for (int adjX = x - buildingGap, adjMaxX = x + buildingGap; adjX <= adjMaxX; ++adjX) {
-						const CELL adjCell = XY_Cell(adjX, adjY);
+						//XY_CELL is incompatible with this because x/y do not take the map offset into account
+						const CELL adjCell = map_cell_x + adjX + ((map_cell_y + adjY) << 6);
 						if (Map.In_Radar(adjCell))
-							placement_distance[adjCell] = min(placement_distance[adjCell], Distance(adjCell, cell));
+							placement_distance[adjCell] = (std::min<int>)(placement_distance[adjCell], Distance(adjCell, cell));
 					}
 				}
 
