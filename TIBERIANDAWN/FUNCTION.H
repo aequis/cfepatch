@@ -980,3 +980,6 @@ void GlyphX_Debug_Print(const char *debug_text);
 ** Achievement event. ST - 11/11/2019 11:39AM
 */
 void On_Achievement_Event(const HouseClass* player_ptr, const char *achievement_type, const char *achievement_reason);
+
+bool Is_Cell_Friendly_To_House(const HousesType house, const CELL cell);
+bool Is_Cell_In_Radius_To_Friendly_House(const HousesType house, const CELL cell, const int radius);

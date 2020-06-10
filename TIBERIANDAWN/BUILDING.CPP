@@ -5489,19 +5489,6 @@ bool BuildingClass::Passes_Proximity_Check(CELL homecell)
 		return(true);
 	}
 
-	const auto Is_Cell_Friendly = [house = House->Class->House](const CELL cell) {
-		if (Map[cell].Owner == house) {
-			return(true);
-		}
-
-		if (const BuildingClass* const base = Map[cell].Cell_Building()) {
-			if (base->House->Class->House == house) {
-				return true;
-			}
-		}
-		return false;
-	};
-
 	/*
 	**	Scan through all cells that the building foundation would cover. If any adjacent
 	**	cells to these are of friendly persuasion, then consider the proximity check to
@@ -5511,25 +5498,40 @@ bool BuildingClass::Passes_Proximity_Check(CELL homecell)
 	while (*ptr != REFRESH_EOL) {
 		CELL cell = homecell + *ptr++;
 
-		if (!Map.In_Radar(cell)) return(false);
-
-		for (FacingType facing = FACING_N; facing < FACING_COUNT; facing++) {
-			const CELL newcell = Adjacent_Cell(cell, facing);
-
-			if (Map.In_Radar(newcell)) {
-				if (Is_Cell_Friendly(newcell)) {
-					return true;
-				}
-				else if (ActiveCFEPatchConfig.EnableBuildingGap) {
-					for (FacingType adjFacing = FACING_FIRST; adjFacing < FACING_COUNT; ++adjFacing) {
-						const CELL adjcell = Adjacent_Cell(newcell, adjFacing);
-						if (Map.In_Radar(adjcell) && Is_Cell_Friendly(adjcell))
-							return true;
-					}
-				}
-			}
-
-		}
+		if (Is_Cell_In_Radius_To_Friendly_House(House->Class->House, cell, ActiveCFEPatchConfig.BuildingGap))
+			return true;
 	}
 	return(false);
+}
+
+bool Is_Cell_Friendly_To_House(const HousesType house, const CELL cell)
+{
+	if (Map[cell].Owner == house) {
+		return(true);
+	}
+
+	if (const BuildingClass* const base = Map[cell].Cell_Building()) {
+		if (base->House->Class->House == house) {
+			return true;
+		}
+	}
+	return false;
+}
+
+bool Is_Cell_In_Radius_To_Friendly_House(const HousesType house, const CELL cell, const int radius)
+{
+	if (Map.In_Radar(cell))
+	{
+		const int cellX = Cell_X(cell);
+		const int cellY = Cell_Y(cell);
+		for (int y = cellY - radius, yEnd = cellY + radius; y <= yEnd; ++y) {
+			for (int x = cellX - radius, xEnd = cellX + radius; x <= xEnd; ++x) {
+				const CELL nextCell = XY_Cell(x, y);
+
+				if (Map.In_Radar(nextCell) && Is_Cell_Friendly_To_House(house, nextCell))
+					return true;
+			}
+		}
+	}
+	return false;
 }

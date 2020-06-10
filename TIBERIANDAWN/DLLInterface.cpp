@@ -4348,25 +4348,24 @@ void DLLExportClass::Calculate_Placement_Distances(BuildingTypeClass* placement_
 	}
 
 	memset(placement_distance, 255U, MAP_CELL_TOTAL);
+
+	const int buildingGap = ActiveCFEPatchConfig.BuildingGap;
+
 	for (int y = 0; y < map_cell_height; y++) {
 		for (int x = 0; x < map_cell_width; x++) {
 			CELL cell = (CELL)map_cell_x + x + ((map_cell_y + y) << 6);
 			BuildingClass* base = (BuildingClass*)Map[cell].Cell_Find_Object(RTTI_BUILDING);
 			if ((base && base->House->Class->House == PlayerPtr->Class->House) || (Map[cell].Owner == PlayerPtr->Class->House)) {
 				placement_distance[cell] = 0U;
-				for (FacingType facing = FACING_N; facing < FACING_COUNT; facing++) {
-					CELL adjcell = Adjacent_Cell(cell, facing);
-					if (Map.In_Radar(adjcell)) {
-						placement_distance[adjcell] = min(placement_distance[adjcell], 1U);
-
-						if (ActiveCFEPatchConfig.EnableBuildingGap) {
-							for (FacingType adjFacing = FACING_FIRST; adjFacing < FACING_COUNT; ++adjFacing) {
-								const CELL extraAdjCell = Adjacent_Cell(adjcell, adjFacing);
-								if (Map.In_Radar(extraAdjCell)) placement_distance[extraAdjCell] = min(placement_distance[extraAdjCell], 2u);
-							}
-						}
+				
+				for (int adjY = y - buildingGap, adjMaxY = y + buildingGap; adjY <= adjMaxY; ++adjY) {
+					for (int adjX = x - buildingGap, adjMaxX = x + buildingGap; adjX <= adjMaxX; ++adjX) {
+						const CELL adjCell = XY_Cell(adjX, adjY);
+						if (Map.In_Radar(adjCell))
+							placement_distance[adjCell] = min(placement_distance[adjCell], Distance(adjCell, cell));
 					}
 				}
+
 			}
 		}
 	}
@@ -4485,7 +4484,7 @@ bool DLLExportClass::Passes_Proximity_Check(CELL cell_in, BuildingTypeClass *pla
 			return false;
 		}
 
-		if (placement_distance[center_cell] <= (ActiveCFEPatchConfig.EnableBuildingGap ? 2U : 1U)) {
+		if (placement_distance[center_cell] <= ActiveCFEPatchConfig.BuildingGap) {
 			return true;
 		}
 	}

@@ -894,19 +894,6 @@ bool DisplayClass::Passes_Proximity_Check(ObjectTypeClass const * object, Houses
 		return(true);
 	}
 
-	const auto Is_Cell_Friendly = [house](const CELL cell) {
-		if (Map[cell].Owner == house) {
-			return(true);
-		}
-
-		if (const BuildingClass* const base = Map[cell].Cell_Building()) {
-			if (base->House->Class->House == house) {
-				return true;
-			}
-		}
-		return false;
-	};
-
 	/*
 	**	Scan through all cells that the building foundation would cover. If any adjacent
 	**	cells to these are of friendly persuasion, then consider the proximity check to
@@ -916,25 +903,8 @@ bool DisplayClass::Passes_Proximity_Check(ObjectTypeClass const * object, Houses
 	while (*ptr != REFRESH_EOL) {
 		CELL	cell = trycell + *ptr++;
 
-		if (!In_Radar(cell)) return(false);
-
-		for (FacingType facing = FACING_N; facing < FACING_COUNT; facing++) {
-			const CELL newcell = Adjacent_Cell(cell, facing);
-
-			if (In_Radar(newcell)) {
-				if (Is_Cell_Friendly(newcell)) {
-					return true;
-				}
-				else if (ActiveCFEPatchConfig.EnableBuildingGap) {
-					for (FacingType adjFacing = FACING_FIRST; adjFacing < FACING_COUNT; ++adjFacing) {
-						const CELL adjcell = Adjacent_Cell(newcell, adjFacing);
-						if (In_Radar(adjcell) && Is_Cell_Friendly(adjcell))
-							return true;
-					}
-				}
-			}
-
-		}
+		if (Is_Cell_In_Radius_To_Friendly_House(house, cell, ActiveCFEPatchConfig.BuildingGap))
+			return true;
 	}
 	return(false);
 }
