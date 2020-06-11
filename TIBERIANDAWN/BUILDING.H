@@ -296,7 +296,7 @@ class BuildingClass : public TechnoClass
 		int Validate(void) const;
 
 		bool Can_Have_Rally_Point() const;
-		virtual void Set_Unselected_By_Player(HouseClass* player = NULL) override;
+		virtual void Set_Unselected_By_Player(HouseClass* player = nullptr) override;
 	private:
 		void  Drop_Debris(TARGET source = TARGET_NONE);
 		virtual BulletClass * Fire_At(TARGET target, int which);

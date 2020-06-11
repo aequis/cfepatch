@@ -1258,7 +1258,7 @@ void FootClass::Active_Click_With(ActionType action, ObjectClass * object)
 			break;
 
 		case ACTION_ENTER:
-			if (Can_Player_Move() && object && object->Is_Techno() && !((RadioClass *)object)->In_Radio_Contact()) {
+			if (Can_Player_Move() && object && object->Is_Techno() && (!((RadioClass *)object)->In_Radio_Contact() || CFE_Patch_Can_Enter_Override(*object))) {
 				Player_Assign_Mission(MISSION_ENTER, TARGET_NONE, object->As_Target());
 			}
 			break;
@@ -1604,6 +1604,19 @@ int FootClass::Mission_Enter(void)
 			*/
 			if (Transmit_Message(RADIO_HELLO, techno) == RADIO_ROGER) {
 				Assign_Destination(TARGET_NONE);
+
+				if (ActiveCFEPatchConfig.EnableRepairQueue) {
+					ArchiveTarget = TARGET_NONE;
+					if (Transmit_Message(RADIO_DOCKING) == RADIO_ROGER) {
+						FootClass::Assign_Destination(techno->As_Target());
+						Path[0] = FACING_NONE;
+					}
+				}
+			}
+			else if (ActiveCFEPatchConfig.EnableRepairQueue) {
+				//Tell the target we're still waiting...
+				if (Transmit_Message(RADIO_QUEUE, techno) == RADIO_NEGATIVE)
+					return TICKS_PER_SECOND;
 			}
 		} else {
 			ArchiveTarget = TARGET_NONE;

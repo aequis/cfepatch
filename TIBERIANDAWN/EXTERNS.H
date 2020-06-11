@@ -82,6 +82,7 @@ struct CFEPatchConfig
 	bool EnableOOMRepair = false;
 	bool EnableRallyPoints = false;
 	bool EnableHarvyQueueJump = false;
+	bool EnableRepairQueue = false;
 	int  BuildingGap = 2;
 	int  HarvyQueueJumpCutoff = 3;
 	int  TibGrowthScale = 1;

@@ -776,7 +776,11 @@ CCDebugString (flip);
 			{
 				if (building->RallyPoint != Data.NavCom.Where)
 				{
-					building->RallyPoint = Data.NavCom.Where;
+					if (building->As_Target() != Data.NavCom.Where)
+						building->RallyPoint = Data.NavCom.Where;
+					else
+						building->RallyPoint = TARGET_NONE;
+
 					Map.Flag_To_Redraw(true);
 				}
 			}

@@ -188,6 +188,7 @@
     <ClInclude Include="CCFILE.H" />
     <ClInclude Include="CDFILE.H" />
     <ClInclude Include="CELL.H" />
+    <ClInclude Include="CFEDEBUG.H" />
     <ClInclude Include="CHECKBOX.H" />
     <ClInclude Include="CHEKLIST.H" />
     <ClInclude Include="COLRLIST.H" />
@@ -382,6 +383,7 @@
     <ClCompile Include="CDATA.CPP" />
     <ClCompile Include="CDFILE.CPP" />
     <ClCompile Include="CELL.CPP" />
+    <ClCompile Include="CFEPATCHQUERY.cpp" />
     <ClCompile Include="CHECKBOX.CPP" />
     <ClCompile Include="CHEKLIST.CPP" />
     <ClCompile Include="COLRLIST.CPP" />

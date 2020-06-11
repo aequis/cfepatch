@@ -1629,7 +1629,8 @@ typedef enum RadioMessageType : unsigned char {
 	RADIO_KICK,				// "Take this kick, you.. you.."
 	RADIO_PUNCH,			// "Take this punch, you.. you.."
 	RADIO_PREPARE_TO_BOX,//	"Fancy a little fisticuffs, eh?"
-	RADIO_CANCEL,
+	RADIO_CANCEL, //"Scratch that"
+	RADIO_QUEUE, //"I'm waiting..."
 
 	RADIO_COUNT
 } RadioMessageType;

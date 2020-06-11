@@ -193,6 +193,7 @@ bool BuildingClass::Can_Have_Rally_Point() const
 	case STRUCT_AIRSTRIP:
 	case STRUCT_BARRACKS:
 	case STRUCT_HAND:
+	case STRUCT_REPAIR:
 		return ActiveCFEPatchConfig.EnableRallyPoints;
 	default:
 		return false;
@@ -268,6 +269,11 @@ RadioMessageType BuildingClass::Receive_Message(RadioClass * from, RadioMessageT
 
 		case RADIO_CAN_LOAD:
 			TechnoClass::Receive_Message(from, message, param);
+
+			//Always allow units to load if queueing is enabled and they'd otherwise be able to load
+			if (ActiveCFEPatchConfig.EnableRepairQueue && BState != BSTATE_CONSTRUCTION && Class->Type == STRUCT_REPAIR && (from->What_Am_I() == RTTI_UNIT || from->What_Am_I() == RTTI_AIRCRAFT))
+				return RADIO_ROGER;
+
 			if (BState == BSTATE_CONSTRUCTION || (!ScenarioInit && In_Radio_Contact())) return(RADIO_NEGATIVE);
 			switch (Class->Type) {
 				case STRUCT_AIRSTRIP:
@@ -431,6 +437,10 @@ RadioMessageType BuildingClass::Receive_Message(RadioClass * from, RadioMessageT
 				if (Distance(from) < 0x0180) {
 					return(RADIO_ROGER);
 				}
+				else if (ActiveCFEPatchConfig.EnableRepairQueue) {
+					Transmit_Message(RADIO_UNTETHER);
+					Transmit_Message(RADIO_OVER_OUT);
+				}
 			}
 
 			//Turn off the refinery lights - LLL April 22, 2020
@@ -448,6 +458,25 @@ RadioMessageType BuildingClass::Receive_Message(RadioClass * from, RadioMessageT
 			}
 		
 			return(RADIO_ROGER);
+
+		case RADIO_QUEUE:
+			if (Class->Type == STRUCT_REPAIR && ActiveCFEPatchConfig.EnableRepairQueue && In_Radio_Contact()) {
+				//If we have an idle unit on the pad, kick them out
+				FootClass& contact = static_cast<FootClass&>(*Contact_With_Whom());
+				if (contact.Health_Ratio() >= 0x0100 && Transmit_Message(RADIO_NEED_TO_MOVE) == RADIO_ROGER ){
+					const TARGET rallyTarget = Target_For_Rally_Point();
+
+					//Make sure units dont rally to themselves. Only a problem for repair/reload pads
+					long moveTarget = (long)(contact.As_Target() != rallyTarget ? rallyTarget : ::As_Target(Nearby_Location()));
+					if (Transmit_Message(RADIO_MOVE_HERE, moveTarget) == RADIO_ROGER)
+					{
+						Enter_Idle_Mode();
+						return RADIO_ROGER;
+					}
+				}
+				return RADIO_NEGATIVE;
+			}
+			break;
 	}
 
 	/*
@@ -2166,11 +2195,11 @@ void BuildingClass::Assign_Target(TARGET target)
 		target = TARGET_NONE;
 	}
 
-	if (Can_Have_Rally_Point() && Target_Legal(target)) {
+	if (RallyPoint != target && Can_Have_Rally_Point() && target == TARGET_NONE || Target_Legal(target)) {
 		RallyPoint = target;
+		Map.Flag_To_Redraw(true);
 		return;
 	}
-
 	TechnoClass::Assign_Target(target);
 }
 

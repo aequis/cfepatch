@@ -627,6 +627,7 @@
     <ClInclude Include="RULES.H">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="CFEDEBUG.H" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AADATA.CPP">
@@ -1206,6 +1207,7 @@
     <ClCompile Include="RULES.CPP">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CFEPATCHQUERY.cpp" />
   </ItemGroup>
   <ItemGroup>
     <MASM Include="win32lib\FACINGFF.ASM">
