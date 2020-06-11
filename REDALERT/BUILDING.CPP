@@ -134,6 +134,45 @@ COORDINATE const BuildingClass::CenterOffset[BSIZE_COUNT] = {
 	0x02800280L,
 };
 
+/***********************************************************************************************
+ * BuildingClass::Can_Have_Rally_Point -- Query if a building can have a rally point.          *
+ *                                                                                             *
+ *    This routine simply checks the buildings type against a hard coded list.                 *
+ *    of buildings that may set a rally point for produced units.                              *
+ *                                                                                             *
+ * INPUT:   None                                                                               *
+ *                                                                                             *
+ * OUTPUT:  True if true false if false                                                        *
+ *                                                                                             *
+ * WARNINGS:   none                                                                            *
+ *                                                                                             *
+ * HISTORY:                                                                                    *
+ *   07/06/2020 cfehunter : Created.                                                           *
+ *=============================================================================================*/
+bool BuildingClass::Can_Have_Rally_Point() const
+{
+	switch (Class->ToBuild)
+	{
+		case RTTI_AIRCRAFTTYPE:
+		case RTTI_INFANTRYTYPE:
+		case RTTI_UNITTYPE:
+		case RTTI_VESSELTYPE:
+			return ActiveCFEPatchConfig.EnableRallyPoints;
+
+		default:
+			return (StructType(*this) == STRUCT_REPAIR);
+	}
+}
+
+void BuildingClass::Set_Unselected_By_Player(HouseClass* player)
+{
+	TechnoClass::Set_Unselected_By_Player(player);
+
+	if (Can_Have_Rally_Point() && RallyPoint)
+	{
+		Map.Flag_To_Redraw(true);
+	}
+}
 
 /***********************************************************************************************
  * BuildingClass::Receive_Message -- Handle an incoming message to the building.               *
@@ -165,6 +204,26 @@ RadioMessageType BuildingClass::Receive_Message(RadioClass * from, RadioMessageT
 	assert(IsActive);
 
 	switch (message) {
+
+		case RADIO_HELLO:
+			if (Class->Type == STRUCT_REFINERY && ActiveCFEPatchConfig.EnableHarvyQueueJump && In_Radio_Contact()) {
+				if (from->What_Am_I() == RTTI_UNIT && *((UnitClass*)from) == UNIT_HARVESTER) {
+
+					UnitClass& currentHarvy = *static_cast<UnitClass*>(Contact_With_Whom());
+					UnitClass& newHarvy = *static_cast<UnitClass*>(from);
+
+					const int currentHarvyDistance = currentHarvy.Distance(this);
+					if (currentHarvyDistance > ActiveCFEPatchConfig.HarvyQueueJumpCutoff && newHarvy.Distance(this) < currentHarvyDistance) {
+
+						//Kick the current harvester out
+						Transmit_Message(RADIO_CANCEL, &currentHarvy);
+
+						//Accept the new one
+						return(TechnoClass::Receive_Message(from, message, param));
+					}
+				}
+			}
+			break;
 
 		/*
 		**	This message is received as a request to attach/load/dock with this building.
@@ -373,7 +432,16 @@ RadioMessageType BuildingClass::Receive_Message(RadioClass * from, RadioMessageT
 				}
 			}
 			TechnoClass::Receive_Message(from, message, param);
-			if (*this == STRUCT_WEAP || *this == STRUCT_AIRSTRIP || *this == STRUCT_REPAIR) return(RADIO_RUN_AWAY);
+			
+			//Either tell the unit to move to the rally point, or have it run away
+			if (Can_Have_Rally_Point() && Target_Legal(RallyPoint)) {
+				SpeedType speed = from->Is_Techno() ? ((TechnoClass const*)from)->Techno_Type_Class()->Speed : SPEED_TRACK;
+
+				from->Set_Mission(MISSION_MOVE);
+				static_cast<FootClass*>(from)->Assign_Destination(Target_For_Rally_Point(speed));
+				return RADIO_ROGER;
+			}
+			
 			return(RADIO_ROGER);
 
 		default:
@@ -504,6 +572,14 @@ void BuildingClass::Draw_It(int x, int y, WindowNumberType window) const
 		if (IsRepairing && IsWrenchVisible) {
 			CC_Draw_Shape(ObjectTypeClass::SelectShapes, SELECT_WRENCH, x, y, window, SHAPE_CENTER|SHAPE_WIN_REL);
 		}
+	}
+
+	if (Can_Have_Rally_Point() && Is_Selected_By_Player() && Is_Owned_By_Player() && RallyPoint && Target_Legal(RallyPoint))
+	{
+		int startX, startY, endX, endY;
+		Map.Coord_To_Pixel(Center_Coord(), startX, startY);
+		Map.Coord_To_Pixel(As_Coord(RallyPoint), endX, endY);
+		CC_Draw_Line(startX, startY, endX, endY, LTGREEN, 1, window);
 	}
 
 	TechnoClass::Draw_It(x, y, window);
@@ -808,6 +884,11 @@ bool BuildingClass::Mark(MarkType mark)
 		return(true);
 	}
 	return(false);
+}
+
+void BuildingClass::Player_Set_Rally_Point(TARGET target)
+{
+	OutList.Add(EventClass(EventClass::SET_RALLY, As_Target(), target));
 }
 
 
@@ -1518,6 +1599,10 @@ ResultType BuildingClass::Take_Damage(int & damage, int distance, WarheadType wa
 	return(res);
 }
 
+TARGET BuildingClass::Target_For_Rally_Point(const SpeedType speed) const
+{
+	return Is_Target_Cell(RallyPoint) ? ::As_Target(Map.Nearby_Location(As_Cell(RallyPoint), speed)) : RallyPoint;
+}
 
 /***********************************************************************************************
  * BuildingClass::new -- Allocates a building object from building pool.                       *
@@ -1812,6 +1897,10 @@ void BuildingClass::Active_Click_With(ActionType action, ObjectClass * object)
 	if (action == ACTION_TOGGLE_PRIMARY && Class->Is_Factory()) {
 		OutList.Add(EventClass(EventClass::PRIMARY, TargetClass(this)));
 	}
+
+	if (action == ACTION_MOVE && Can_Have_Rally_Point()) {
+		Player_Set_Rally_Point(object->As_Target());
+	}
 }
 
 
@@ -1842,12 +1931,18 @@ void BuildingClass::Active_Click_With(ActionType action, CELL cell)
 		Player_Assign_Mission(MISSION_ATTACK, ::As_Target(cell));
 	}
 
-	if (action == ACTION_MOVE && *this == STRUCT_CONST) {
-		OutList.Add(EventClass(EventClass::ARCHIVE, TargetClass(this), TargetClass(::As_Target(cell))));
-		OutList.Add(EventClass(EventClass::SELL, TargetClass(this)));
+	if (action == ACTION_MOVE) {
 
-		COORDINATE coord = Map.Pixel_To_Coord(Get_Mouse_X(), Get_Mouse_Y());
-		OutList.Add(EventClass(ANIM_MOVE_FLASH, PlayerPtr->Class->House, coord));
+		if (*this == STRUCT_CONST) {
+			OutList.Add(EventClass(EventClass::ARCHIVE, TargetClass(this), TargetClass(::As_Target(cell))));
+			OutList.Add(EventClass(EventClass::SELL, TargetClass(this)));
+
+			COORDINATE coord = Map.Pixel_To_Coord(Get_Mouse_X(), Get_Mouse_Y());
+			OutList.Add(EventClass(ANIM_MOVE_FLASH, PlayerPtr->Class->House, coord));
+		}
+		else if (Can_Have_Rally_Point()) {
+			Player_Set_Rally_Point(::As_Target(cell));
+		}
 	}
 }
 
@@ -1875,6 +1970,11 @@ void BuildingClass::Assign_Target(TARGET target)
 
 	if (*this != STRUCT_SAM && *this != STRUCT_AAGUN && !In_Range(target, 0)) {
 		target = TARGET_NONE;
+	}
+
+	if (Can_Have_Rally_Point() && Target_Legal(target)) {
+		RallyPoint = target;
+		return;
 	}
 
 	TechnoClass::Assign_Target(target);
@@ -2846,7 +2946,7 @@ ActionType BuildingClass::What_Action(ObjectClass const * object) const
 		action = ACTION_NONE;
 	}
 
-	if (action == ACTION_MOVE) {
+	if (action == ACTION_MOVE && !Can_Have_Rally_Point()) {
 		action = ACTION_NONE;
 	}
 
@@ -2877,7 +2977,7 @@ ActionType BuildingClass::What_Action(CELL cell) const
 
 	ActionType action = TechnoClass::What_Action(cell);
 
-	if (action == ACTION_MOVE && (*this != STRUCT_CONST || !Is_MCV_Deploy())) {
+	if (action == ACTION_MOVE && !Can_Have_Rally_Point() && (*this != STRUCT_CONST || !Is_MCV_Deploy())) {
 		action = ACTION_NONE;
 	}
 
@@ -3398,6 +3498,11 @@ MoveType BuildingClass::Can_Enter_Cell(CELL cell, FacingType) const
 
 	if (*this == STRUCT_CONST && IsDown) {
 		return(Map[cell].Is_Clear_To_Build(Class->Speed) ? MOVE_OK : MOVE_NO);
+	}
+
+	if (Can_Have_Rally_Point()) {
+		SpeedType buildSpeed = Fetch_Techno_Type(Class->ToBuild, 0)->Speed; // 0 = Some of this kind
+		return Map[cell].Is_Clear_To_Move(buildSpeed, true, true) ? MOVE_OK : MOVE_NO;
 	}
 
 	if (!Debug_Map && ScenarioInit == 0 && Session.Type == GAME_NORMAL && House->IsPlayerControl && !Map[cell].IsMapped) {
@@ -5170,7 +5275,7 @@ bool BuildingClass::Can_Player_Move(void) const
 	assert(Buildings.ID(this) == ID);
 	assert(IsActive);
 
-	return(*this == STRUCT_CONST && (Mission == MISSION_GUARD) && Special.IsMCVDeploy);
+	return Can_Have_Rally_Point() || (*this == STRUCT_CONST && (Mission == MISSION_GUARD) && Special.IsMCVDeploy);
 }
 
 
@@ -5771,7 +5876,7 @@ void BuildingClass::Repair_AI(void)
 				Strength = Class->MaxStrength;
 				IsRepairing = false;
 			}
-		} else {
+		} else if (!ActiveCFEPatchConfig.EnableOOMRepair) {
 			IsRepairing = false;
 		}
 	}

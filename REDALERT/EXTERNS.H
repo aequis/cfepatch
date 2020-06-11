@@ -91,6 +91,17 @@ extern void const *LightningShapes;
 
 extern int NewINIFormat;
 
+struct CFEPatchConfig
+{
+	bool EnableASPathing = false;
+	bool EnableOOMRepair = false;
+	bool EnableRallyPoints = false;
+	bool EnableHarvyQueueJump = false;
+	int  HarvyQueueJumpCutoff = 3;
+	int  OreGrowthScale = 1;
+};
+
+extern CFEPatchConfig ActiveCFEPatchConfig;
 
 #ifdef FIXIT_ANTS
 extern bool AntsEnabled;

@@ -172,6 +172,29 @@ static void Load_Prolog_Page(void)
 	Show_Mouse();
 }
 
+void Init_CFEPatch()
+{
+	char* const fileBuffer = _ShapeBuffer;
+	CCFileClass file("CFEPATCH_RA.INI");
+	memset(fileBuffer, '\0', _ShapeBufferSize);
+
+	if (file.Is_Available())
+	{
+		file.Read(fileBuffer, _ShapeBufferSize - 1);
+		file.Close();
+
+		ActiveCFEPatchConfig.EnableASPathing = WWGetPrivateProfileInt("FEATURES", "ASTAR_PATHING", 0, fileBuffer);
+		ActiveCFEPatchConfig.EnableOOMRepair = WWGetPrivateProfileInt("FEATURES", "OOM_REPAIR", 0, fileBuffer);
+		ActiveCFEPatchConfig.EnableRallyPoints = WWGetPrivateProfileInt("FEATURES", "RALLY_POINTS", 0, fileBuffer);
+		ActiveCFEPatchConfig.EnableHarvyQueueJump = WWGetPrivateProfileInt("FEATURES", "HARVY_QUEUE_JUMP", 0, fileBuffer);
+
+		ActiveCFEPatchConfig.HarvyQueueJumpCutoff = WWGetPrivateProfileInt("SETTINGS", "QUEUE_JUMP_CUTOFF", 3, fileBuffer);
+		ActiveCFEPatchConfig.OreGrowthScale = WWGetPrivateProfileInt("SETTINGS", "ORE_GROWTH_SCALE", 1, fileBuffer);
+	}
+	else {
+		throw;
+	}
+}
 
 /***********************************************************************************************
  * Init_Game -- Main game initialization routine.                                              *
@@ -433,6 +456,8 @@ bool Init_Game(int , char * [])
 	*/
 	ChronalVortex.Stop();
 	ChronalVortex.Setup_Remap_Tables(Scen.Theater);
+
+	Init_CFEPatch();
 
 	return(true);
 }

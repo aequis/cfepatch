@@ -1430,11 +1430,26 @@ int AircraftClass::Exit_Object(TechnoClass * unit)
 	**	unloading the next passenger or taking off.
 	*/
 	if (unit->Unlimbo(Coord, Facing_Dir(_toface[face]))) {
+		TARGET target = ::As_Target(cell);
+
+		/* CFE Patch - unsure what the changes in this file are meant to do.
+		   Possible solution might be (Root-Core @ 20200611):
+
+		if (const BuildingClass* const target_building = As_Building(NavCom))
+		{
+			if (target_building->Can_Have_Rally_Point() && Target_Legal(target_building->RallyPoint))
+			{
+				target = target_building->Target_For_Rally_Point();
+			}
+		}*/
+
 		unit->Assign_Mission(MISSION_MOVE);
-		unit->Assign_Destination(::As_Target(cell));
+		unit->Assign_Destination(target);
+
 		if (Transmit_Message(RADIO_HELLO, unit) == RADIO_ROGER) {
 			Transmit_Message(RADIO_UNLOAD);
 		}
+
 		unit->Look(false);
 		return(true);
 	}

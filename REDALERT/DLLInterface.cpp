@@ -182,6 +182,7 @@ class DLLExportClass {
 		static void Convert_Type(const ObjectClass *object, CNCObjectStruct &object_out);
 		static void DLL_Draw_Intercept(int shape_number, int x, int y, int width, int height, int flags, const ObjectClass *object, DirType rotation, long scale, const char *shape_file_name = NULL, char override_owner = HOUSE_NONE);
 		static void DLL_Draw_Pip_Intercept(const ObjectClass* object, int pip);
+		static void DLL_Draw_Line_Intercept(int x, int y, int x1, int y1, unsigned char color, int frame);
 		static bool Place(uint64 player_id, int buildable_type, int buildable_id, short cell_x, short cell_y);
 		static bool Cancel_Placement(uint64 player_id, int buildable_type, int buildable_id);
 		static bool Place_Super_Weapon(uint64 player_id, int buildable_type, int buildable_id, int x, int y);
@@ -3217,6 +3218,12 @@ void DLL_Draw_Pip_Intercept(const ObjectClass* object, int pip)
 }
 
 
+void DLL_Draw_Line_Intercept(int x, int y, int x1, int y1, unsigned char color, int frame)
+{
+	DLLExportClass::DLL_Draw_Line_Intercept(x, y, x1, y1, color, frame);
+}
+
+
 void DLLExportClass::DLL_Draw_Intercept(int shape_number, int x, int y, int width, int height, int flags, const ObjectClass *object, DirType rotation, long scale, const char *shape_file_name, char override_owner)
 {
 	CNCObjectStruct& new_object = ObjectList->Objects[TotalObjectCount + CurrentDrawCount];
@@ -3581,6 +3588,23 @@ void DLLExportClass::DLL_Draw_Pip_Intercept(const ObjectClass* object, int pip)
 	}
 }
 
+
+
+void DLLExportClass::DLL_Draw_Line_Intercept(int x, int y, int x1, int y1, unsigned char color, int frame)
+{
+	CNCObjectStruct& root_object = ObjectList->Objects[TotalObjectCount];
+	if (root_object.NumLines < MAX_OBJECT_LINES) {
+		root_object.Lines[root_object.NumLines].X = x;
+		root_object.Lines[root_object.NumLines].Y = y;
+		root_object.Lines[root_object.NumLines].X1 = x1;
+		root_object.Lines[root_object.NumLines].Y1 = y1;
+		root_object.Lines[root_object.NumLines].Frame = frame;
+		root_object.Lines[root_object.NumLines].Color = color;
+
+		SortOrder++;
+		root_object.NumLines++;
+	}
+}
 
 
 
