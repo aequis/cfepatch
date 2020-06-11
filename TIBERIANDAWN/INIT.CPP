@@ -103,6 +103,7 @@ void Init_CFEPatch()
 		ActiveCFEPatchConfig.EnableRallyPoints = WWGetPrivateProfileInt("FEATURES", "RALLY_POINTS", 0, fileBuffer);
 		ActiveCFEPatchConfig.EnableHarvyQueueJump = WWGetPrivateProfileInt("FEATURES", "HARVY_QUEUE_JUMP", 0, fileBuffer);
 		ActiveCFEPatchConfig.EnableRepairQueue = WWGetPrivateProfileInt("FEATURES", "REPAIR_QUEUE", 0, fileBuffer);
+		ActiveCFEPatchConfig.EnableHarvySelfRepair = WWGetPrivateProfileInt("FEATURES", "HARVY_SELF_REPAIR", 0, fileBuffer);
 
 		ActiveCFEPatchConfig.BuildingGap = WWGetPrivateProfileInt("SETTINGS", "BUILDING_GAP", 2, fileBuffer);
 		ActiveCFEPatchConfig.HarvyQueueJumpCutoff = WWGetPrivateProfileInt("SETTINGS", "QUEUE_JUMP_CUTOFF", 3, fileBuffer);
