@@ -2195,7 +2195,7 @@ void BuildingClass::Assign_Target(TARGET target)
 		target = TARGET_NONE;
 	}
 
-	if (RallyPoint != target && Can_Have_Rally_Point() && target == TARGET_NONE || Target_Legal(target)) {
+	if (RallyPoint != target && Can_Have_Rally_Point() && (target == TARGET_NONE || Target_Legal(target))) {
 		RallyPoint = target;
 		Map.Flag_To_Redraw(true);
 		return;
