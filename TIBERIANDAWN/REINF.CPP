@@ -152,7 +152,7 @@ bool Do_Reinforcements(TeamTypeClass *teamtype)
 			* so we don't early out here, just incase.
 			*/
 			ScenarioInit++;
-			FootClass* temp = CFE_Patch_A10_Override(*tclass) ? (FootClass*)tclass->Create_One_Of(HouseClass::As_Pointer(teamtype->House)) : nullptr;
+			FootClass* temp = CFE_Patch_A10_Override(*tclass, team->House->IsHuman) ? (FootClass*)tclass->Create_One_Of(HouseClass::As_Pointer(teamtype->House)) : nullptr;
 			ScenarioInit--;
 
 			if (temp) {

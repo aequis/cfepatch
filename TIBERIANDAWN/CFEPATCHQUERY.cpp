@@ -10,9 +10,10 @@ bool CFE_Patch_Can_Enter_Override(const ObjectClass& object)
 }
 
 //Disable A10s in missions if the player has no buildings
-bool CFE_Patch_A10_Override(const ObjectTypeClass& object)
+bool CFE_Patch_A10_Override(const ObjectTypeClass& object, const bool isHuman)
 {
-	if (ActiveCFEPatchConfig.DisableCommandoAirstrikes
+	if (!isHuman
+		&& ActiveCFEPatchConfig.DisableCommandoAirstrikes
 		&& GameToPlay == GAME_NORMAL
 		&& object.What_Am_I() == RTTI_AIRCRAFTTYPE
 		&& ((const AircraftTypeClass&)(object)).Type == AIRCRAFT_A10)

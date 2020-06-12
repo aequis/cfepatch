@@ -985,6 +985,6 @@ bool Is_Cell_Friendly_To_House(const HousesType house, const CELL cell);
 bool Is_Cell_In_Radius_To_Friendly_House(const HousesType house, const CELL cell, const int radius);
 
 bool CFE_Patch_Can_Enter_Override(const ObjectClass& object);
-bool CFE_Patch_A10_Override(const ObjectTypeClass& object);
+bool CFE_Patch_A10_Override(const ObjectTypeClass& object, const bool isHuman);
 bool CFE_Patch_House_Has_Any_Buildings_In_Map(HouseClass& house);
 void Initialise_CFE_Patch_Config();
