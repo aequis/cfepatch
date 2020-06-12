@@ -3881,7 +3881,7 @@ MoveType BuildingClass::Can_Enter_Cell(CELL cell, FacingType) const
 {
 	Validate();
 
-	if (Can_Have_Rally_Point() || (*this == STRUCT_CONST && IsDown)) {
+	if (IsDown && (Can_Have_Rally_Point() || *this == STRUCT_CONST)) {
 		return(Map[cell].Is_Generally_Clear() ? MOVE_OK : MOVE_NO);
 	}
 
@@ -5524,13 +5524,16 @@ bool BuildingClass::Passes_Proximity_Check(CELL homecell)
 	**	have been a success.
 	*/
 	short const * ptr = Occupy_List(true);
+	bool proximityPass = false;
 	while (*ptr != REFRESH_EOL) {
 		CELL cell = homecell + *ptr++;
 
-		if (Is_Cell_In_Radius_To_Friendly_House(House->Class->House, cell, ActiveCFEPatchConfig.BuildingGap))
-			return true;
+		if (!Map.In_Radar(cell))
+			return false;
+
+		proximityPass = proximityPass || Is_Cell_In_Radius_To_Friendly_House(House->Class->House, cell, ActiveCFEPatchConfig.BuildingGap);
 	}
-	return(false);
+	return proximityPass;
 }
 
 bool Is_Cell_Friendly_To_House(const HousesType house, const CELL cell)

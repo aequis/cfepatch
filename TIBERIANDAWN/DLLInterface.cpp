@@ -4476,20 +4476,18 @@ bool DLLExportClass::Passes_Proximity_Check(CELL cell_in, BuildingTypeClass *pla
 	*/
 	short const *occupy_list = placement_type->Occupy_List(true);
 	
+	bool proximityPass = false;
 	while (*occupy_list != REFRESH_EOL) {
 
 		CELL center_cell = cell_in + *occupy_list++;
 
-		if (!Map.In_Radar(center_cell)) {
+		if (!Map.In_Radar(center_cell))
 			return false;
-		}
 
-		if (placement_distance[center_cell] <= ActiveCFEPatchConfig.BuildingGap) {
-			return true;
-		}
+		proximityPass = proximityPass || placement_distance[center_cell] <= ActiveCFEPatchConfig.BuildingGap;
 	}
 
-	return false;
+	return proximityPass;
 }
 
 

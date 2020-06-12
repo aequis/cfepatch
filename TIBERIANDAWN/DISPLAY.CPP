@@ -900,13 +900,16 @@ bool DisplayClass::Passes_Proximity_Check(ObjectTypeClass const * object, Houses
 	**	have been a success.
 	*/
 	ptr = list;
+	bool proximityPass = false;
 	while (*ptr != REFRESH_EOL) {
-		CELL	cell = trycell + *ptr++;
+		CELL cell = trycell + *ptr++;
 
-		if (Is_Cell_In_Radius_To_Friendly_House(house, cell, ActiveCFEPatchConfig.BuildingGap))
-			return true;
+		if (!Map.In_Radar(cell))
+			return false;
+
+		proximityPass = proximityPass || Is_Cell_In_Radius_To_Friendly_House(house, cell, ActiveCFEPatchConfig.BuildingGap);
 	}
-	return(false);
+	return proximityPass;
 }
 
 #endif //USE_RA_AI
