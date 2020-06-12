@@ -71,10 +71,9 @@ void Initialise_CFE_Patch_Config()
 			const int directoryResult = SHCreateDirectoryExA(NULL, iniDir.c_str(), NULL);
 			if (directoryResult == ERROR_SUCCESS || directoryResult == ERROR_ALREADY_EXISTS)
 			{
-				if (CopyFileA(defaultConfig.File_Name(), iniPath.c_str(), TRUE))
+				if (!CopyFileA(defaultConfig.File_Name(), iniPath.c_str(), TRUE))
 				{
-					if (Populate_CFE_Patch_Config_From_INI(iniPath.c_str()))
-						return;
+					Populate_CFE_Patch_Config_From_INI(iniPath.c_str());
 				}
 			}
 		}
