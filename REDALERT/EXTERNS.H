@@ -97,6 +97,8 @@ struct CFEPatchConfig
 	bool EnableOOMRepair = false;
 	bool EnableRallyPoints = false;
 	bool EnableHarvyQueueJump = false;
+	bool EnableInstantCapture = false;
+
 	int  HarvyQueueJumpCutoff = 3;
 	int  OreGrowthScale = 1;
 };

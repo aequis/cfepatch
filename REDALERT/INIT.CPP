@@ -187,6 +187,7 @@ void Init_CFEPatch()
 		ActiveCFEPatchConfig.EnableOOMRepair = WWGetPrivateProfileInt("FEATURES", "OOM_REPAIR", 0, fileBuffer);
 		ActiveCFEPatchConfig.EnableRallyPoints = WWGetPrivateProfileInt("FEATURES", "RALLY_POINTS", 0, fileBuffer);
 		ActiveCFEPatchConfig.EnableHarvyQueueJump = WWGetPrivateProfileInt("FEATURES", "HARVY_QUEUE_JUMP", 0, fileBuffer);
+		ActiveCFEPatchConfig.EnableInstantCapture = WWGetPrivateProfileInt("FEATURES", "INSTANT_CAPTURE", 0, fileBuffer);
 
 		ActiveCFEPatchConfig.HarvyQueueJumpCutoff = WWGetPrivateProfileInt("SETTINGS", "QUEUE_JUMP_CUTOFF", 3, fileBuffer);
 		ActiveCFEPatchConfig.OreGrowthScale = WWGetPrivateProfileInt("SETTINGS", "ORE_GROWTH_SCALE", 1, fileBuffer);
