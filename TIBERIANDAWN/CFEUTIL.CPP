@@ -1,4 +1,5 @@
 #define WIN32_LEAN_AND_MEAN
+#include <algorithm>
 #include <Windows.h>
 #include <ShlObj.h>
 #include <string>
@@ -41,11 +42,16 @@ bool Populate_CFE_Patch_Config_From_INI(const char* path)
 		OverwriteIfValid(ActiveCFEPatchConfig.EnableRepairQueue         , WWGetPrivateProfileInt("FEATURES", "REPAIR_QUEUE", InvalidSetting, fileBuffer));
 		OverwriteIfValid(ActiveCFEPatchConfig.EnableHarvySelfRepair     , WWGetPrivateProfileInt("FEATURES", "HARVY_SELF_REPAIR", InvalidSetting, fileBuffer));
 		OverwriteIfValid(ActiveCFEPatchConfig.DisableCommandoAirstrikes , WWGetPrivateProfileInt("FEATURES", "DISABLE_COMMANDO_AIRSTRIKES", InvalidSetting, fileBuffer));
-
+		
 		//Settings
 		OverwriteIfValid(ActiveCFEPatchConfig.BuildingGap               , WWGetPrivateProfileInt("SETTINGS", "BUILDING_GAP", InvalidSetting, fileBuffer));
 		OverwriteIfValid(ActiveCFEPatchConfig.HarvyQueueJumpCutoff      , WWGetPrivateProfileInt("SETTINGS", "QUEUE_JUMP_CUTOFF", InvalidSetting, fileBuffer));
 		OverwriteIfValid(ActiveCFEPatchConfig.TibGrowthScale            , WWGetPrivateProfileInt("SETTINGS", "TIB_GROWTH_SCALE", InvalidSetting, fileBuffer));
+		OverwriteIfValid(ActiveCFEPatchConfig.WallBuildLength           , WWGetPrivateProfileInt("SETTINGS", "WALL_BUILD_LENGTH", InvalidSetting, fileBuffer));
+
+		//Clamp Wall Length between 1 (build at all) and 10 (buffer limits)
+		ActiveCFEPatchConfig.WallBuildLength = (std::max)(1, (std::min)(ActiveCFEPatchConfig.WallBuildLength, 10));
+
 		return true;
 	}
 

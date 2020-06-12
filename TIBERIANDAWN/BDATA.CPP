@@ -140,7 +140,7 @@ static short const ComList[] = {0, MCW, MCW+1, REFRESH_EOL};
 static short const List21[] = {0, 1, REFRESH_EOL};
 static short const ListWeap[] = {(MCW*1), (MCW*1)+1, (MCW*1)+2, (MCW*2), (MCW*2)+1, (MCW*2)+2, REFRESH_EOL};
 static short const List12[] = {MCW, REFRESH_EOL};
-static short const ListHand[] = {MCW, MCW+1, MCW*2+1, REFRESH_EOL};
+static short const ListHand[] = { MCW, MCW + 1, MCW * 2 + 1, REFRESH_EOL };
 static short const ListTmpl[] = {MCW, MCW+1, MCW+2, MCW*2, MCW*2+1, MCW*2+2, REFRESH_EOL};
 static short const List0011[] = {(MCW*1), (MCW*1)+1, REFRESH_EOL};
 static short const List1101[] = {0, 1, (MCW*1)+1, REFRESH_EOL};
@@ -4243,7 +4243,6 @@ void BuildingTypeClass::Display(int x, int y, WindowNumberType window, HousesTyp
 	CC_Draw_Shape(ptr, 0, x, y, window, SHAPE_FADING|SHAPE_CENTER|SHAPE_WIN_REL, HouseTypeClass::As_Reference(house).RemapTable);
 }
 
-
 /***********************************************************************************************
  * BuildingTypeClass::Prep_For_Add -- Prepares scenario editor for adding a                    *
  *                                                                                             *
@@ -4843,6 +4842,38 @@ bool BuildingTypeClass::Bib_And_Offset(SmudgeType & bib, CELL & cell) const
 	return(bib != SMUDGE_NONE);
 }
 
+/***********************************************************************************************
+ * BuildingTypeClass::Overlay_Type                                                             *
+ *                                                                                             *
+ * Determines the overlay type required to display this building                               *
+ *                                                                                             *
+ * INPUT:   none                                                                               *
+ *                                                                                             *
+ * OUTPUT:  overlay type to display                                                            *
+ *                                                                                             *
+ * WARNINGS:   none                                                                            *
+ *                                                                                             *
+ * HISTORY:                                                                                    *
+ *   12/06/2020 cfehunter : Created.                                                           *
+ *=============================================================================================*/
+OverlayType BuildingTypeClass::Overlay_Type() const
+{
+	switch (StructType(*this))
+	{
+	case STRUCT_SANDBAG_WALL:
+		return OVERLAY_SANDBAG_WALL;
+	case STRUCT_CYCLONE_WALL:
+		return OVERLAY_CYCLONE_WALL;
+	case STRUCT_BRICK_WALL:
+		return OVERLAY_BRICK_WALL;
+	case STRUCT_BARBWIRE_WALL:
+		return OVERLAY_BARBWIRE_WALL;
+	case STRUCT_WOOD_WALL:
+		 return OVERLAY_WOOD_WALL;
+	default:
+		return OVERLAY_NONE;
+	}
+}
 
 /***********************************************************************************************
  * BuildingTypeClass::Max_Pips -- Determines the maximum pips to display.                      *

@@ -44,3 +44,8 @@ bool CFE_Patch_House_Has_Any_Buildings_In_Map(HouseClass& house)
 	}
 	return false;
 }
+
+bool CFE_Patch_Is_Wall(const ObjectTypeClass& object)
+{
+	return object.What_Am_I() == RTTI_BUILDINGTYPE && static_cast<const BuildingTypeClass&>(object).IsWall;
+}

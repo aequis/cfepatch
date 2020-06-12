@@ -1575,3 +1575,48 @@ CELL MapClass::Nearby_Location(CELL cell) const	//, SpeedType speed, int zone, M
 }
 
 #endif // USE_RA_AI
+
+/***********************************************************************************************
+ * DisplayClass::Scan_For_Overlay -- scans from a cell for a clear path to a specified overlay *
+ *                                                                                             *
+ *    This routine will find the nearest instance of the overlay in the given direction from   *
+ *    the origin. It will abort if it comes across any obstacle.                               *
+ *                                                                                             *
+ * INPUT:   origin  - starting cell                                                            *
+ *          dir     - direction to search in                                                   *
+ *          overlay - overlay to search for                                                    *
+ *          maxLength - length to stop searching at                                            *
+ *                                                                                             *
+ * OUTPUT:  Either the cell with the overlay, or -1 if not found                               *
+ *                                                                                             *
+ * WARNINGS:  none                                                                             *
+ *                                                                                             *
+ * HISTORY:                                                                                    *
+ * 12/06/2020 cfehunter: created                                                               *
+ *=============================================================================================*/
+int MapClass::Scan_For_Overlay(const CELL origin, const FacingType dir, const OverlayType overlay, const int maxLength) const
+{
+	if (In_Radar(origin))
+	{
+		CELL current = origin;
+		for (int i = 0; i < maxLength; ++i)
+		{
+			current = Adjacent_Cell(current, dir);
+			if (In_Radar(current))
+			{
+				const CellClass& mapCell = Map[current];
+
+				//Found a match
+				if (mapCell.Overlay == overlay)
+					return i;
+				//Blocked by an object
+				else if (!Map[current].Is_Generally_Clear())
+					break;
+			}
+			else
+				break;
+		}
+	}
+
+	return -1;
+}
