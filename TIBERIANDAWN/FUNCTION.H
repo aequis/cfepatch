@@ -985,3 +985,4 @@ bool Is_Cell_Friendly_To_House(const HousesType house, const CELL cell);
 bool Is_Cell_In_Radius_To_Friendly_House(const HousesType house, const CELL cell, const int radius);
 
 bool CFE_Patch_Can_Enter_Override(const ObjectClass& object);
+void Initialise_CFE_Patch_Config();

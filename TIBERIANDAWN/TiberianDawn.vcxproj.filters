@@ -1208,6 +1208,7 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CFEPATCHQUERY.cpp" />
+    <ClCompile Include="CFEUTIL.CPP" />
   </ItemGroup>
   <ItemGroup>
     <MASM Include="win32lib\FACINGFF.ASM">
