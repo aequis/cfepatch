@@ -145,8 +145,14 @@ bool Do_Reinforcements(TeamTypeClass *teamtype)
 		TechnoTypeClass const * tclass = teamtype->Class[index];
 
 		for (int sub = 0; sub < teamtype->DesiredNum[index]; sub++) {
+
+			/* cfehunter 12/06/2020
+			* Suppress construction of A10s if the player has no base.
+			* There could potentially be reinforcement waves that contain A10s mixed with other units
+			* so we don't early out here, just incase.
+			*/
 			ScenarioInit++;
-			FootClass * temp = (FootClass *)tclass->Create_One_Of(HouseClass::As_Pointer(teamtype->House));
+			FootClass* temp = CFE_Patch_A10_Override(*tclass) ? (FootClass*)tclass->Create_One_Of(HouseClass::As_Pointer(teamtype->House)) : nullptr;
 			ScenarioInit--;
 
 			if (temp) {

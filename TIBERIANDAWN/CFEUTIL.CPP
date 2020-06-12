@@ -34,17 +34,18 @@ bool Populate_CFE_Patch_Config_From_INI(const char* path)
 
 		//cfehunter 12/06/2020 It's really starting to get to the point where I should make feature flags
 		//Features
-		OverwriteIfValid(ActiveCFEPatchConfig.EnableASPathing       , WWGetPrivateProfileInt("FEATURES", "ASTAR_PATHING", InvalidSetting, fileBuffer));
-		OverwriteIfValid(ActiveCFEPatchConfig.EnableOOMRepair       , WWGetPrivateProfileInt("FEATURES", "OOM_REPAIR", InvalidSetting, fileBuffer));
-		OverwriteIfValid(ActiveCFEPatchConfig.EnableRallyPoints     , WWGetPrivateProfileInt("FEATURES", "RALLY_POINTS", InvalidSetting, fileBuffer));
-		OverwriteIfValid(ActiveCFEPatchConfig.EnableHarvyQueueJump  , WWGetPrivateProfileInt("FEATURES", "HARVY_QUEUE_JUMP", InvalidSetting, fileBuffer));
-		OverwriteIfValid(ActiveCFEPatchConfig.EnableRepairQueue     , WWGetPrivateProfileInt("FEATURES", "REPAIR_QUEUE", InvalidSetting, fileBuffer));
-		OverwriteIfValid(ActiveCFEPatchConfig.EnableHarvySelfRepair , WWGetPrivateProfileInt("FEATURES", "HARVY_SELF_REPAIR", InvalidSetting, fileBuffer));
+		OverwriteIfValid(ActiveCFEPatchConfig.EnableASPathing           , WWGetPrivateProfileInt("FEATURES", "ASTAR_PATHING", InvalidSetting, fileBuffer));
+		OverwriteIfValid(ActiveCFEPatchConfig.EnableOOMRepair           , WWGetPrivateProfileInt("FEATURES", "OOM_REPAIR", InvalidSetting, fileBuffer));
+		OverwriteIfValid(ActiveCFEPatchConfig.EnableRallyPoints         , WWGetPrivateProfileInt("FEATURES", "RALLY_POINTS", InvalidSetting, fileBuffer));
+		OverwriteIfValid(ActiveCFEPatchConfig.EnableHarvyQueueJump      , WWGetPrivateProfileInt("FEATURES", "HARVY_QUEUE_JUMP", InvalidSetting, fileBuffer));
+		OverwriteIfValid(ActiveCFEPatchConfig.EnableRepairQueue         , WWGetPrivateProfileInt("FEATURES", "REPAIR_QUEUE", InvalidSetting, fileBuffer));
+		OverwriteIfValid(ActiveCFEPatchConfig.EnableHarvySelfRepair     , WWGetPrivateProfileInt("FEATURES", "HARVY_SELF_REPAIR", InvalidSetting, fileBuffer));
+		OverwriteIfValid(ActiveCFEPatchConfig.DisableCommandoAirstrikes , WWGetPrivateProfileInt("FEATURES", "DISABLE_COMMANDO_AIRSTRIKES", InvalidSetting, fileBuffer));
 
 		//Settings
-		OverwriteIfValid(ActiveCFEPatchConfig.BuildingGap           , WWGetPrivateProfileInt("SETTINGS", "BUILDING_GAP", InvalidSetting, fileBuffer));
-		OverwriteIfValid(ActiveCFEPatchConfig.HarvyQueueJumpCutoff  , WWGetPrivateProfileInt("SETTINGS", "QUEUE_JUMP_CUTOFF", InvalidSetting, fileBuffer));
-		OverwriteIfValid(ActiveCFEPatchConfig.TibGrowthScale        , WWGetPrivateProfileInt("SETTINGS", "TIB_GROWTH_SCALE", InvalidSetting, fileBuffer));
+		OverwriteIfValid(ActiveCFEPatchConfig.BuildingGap               , WWGetPrivateProfileInt("SETTINGS", "BUILDING_GAP", InvalidSetting, fileBuffer));
+		OverwriteIfValid(ActiveCFEPatchConfig.HarvyQueueJumpCutoff      , WWGetPrivateProfileInt("SETTINGS", "QUEUE_JUMP_CUTOFF", InvalidSetting, fileBuffer));
+		OverwriteIfValid(ActiveCFEPatchConfig.TibGrowthScale            , WWGetPrivateProfileInt("SETTINGS", "TIB_GROWTH_SCALE", InvalidSetting, fileBuffer));
 		return true;
 	}
 
@@ -67,14 +68,12 @@ void Initialise_CFE_Patch_Config()
 		CCFileClass defaultConfig(DefaultININame);
 		if (defaultConfig.Is_Available())
 		{
-			//If we fail for any reason just load the default
+			//Create directories and clone the default config
 			const int directoryResult = SHCreateDirectoryExA(NULL, iniDir.c_str(), NULL);
 			if (directoryResult == ERROR_SUCCESS || directoryResult == ERROR_ALREADY_EXISTS)
 			{
-				if (!CopyFileA(defaultConfig.File_Name(), iniPath.c_str(), TRUE))
-				{
-					Populate_CFE_Patch_Config_From_INI(iniPath.c_str());
-				}
+				//Copy the default ini to the user directory so they can modify it later
+				CopyFileA(defaultConfig.File_Name(), iniPath.c_str(), TRUE);
 			}
 		}
 	}

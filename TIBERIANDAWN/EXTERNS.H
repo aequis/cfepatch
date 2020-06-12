@@ -84,6 +84,7 @@ struct CFEPatchConfig
 	bool EnableHarvyQueueJump = false;
 	bool EnableRepairQueue = false;
 	bool EnableHarvySelfRepair = false;
+	bool DisableCommandoAirstrikes = false;
 	int  BuildingGap = 2;
 	int  HarvyQueueJumpCutoff = 3;
 	int  TibGrowthScale = 1;
