@@ -160,7 +160,7 @@ bool BuildingClass::Can_Have_Rally_Point() const
 			return ActiveCFEPatchConfig.EnableRallyPoints;
 
 		default:
-			return (StructType(*this) == STRUCT_REPAIR);
+			return false; //(StructType(*this) == STRUCT_REPAIR);
 	}
 }
 
@@ -888,7 +888,7 @@ bool BuildingClass::Mark(MarkType mark)
 
 void BuildingClass::Player_Set_Rally_Point(TARGET target)
 {
-	OutList.Add(EventClass(EventClass::SET_RALLY, As_Target(), target));
+	OutList.Add(EventClass(EventClass::SET_RALLY, TargetClass(As_Target()), TargetClass(target)));
 }
 
 

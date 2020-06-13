@@ -1052,11 +1052,11 @@ void EventClass::Execute(void)
 
 		//CFE Patch events
 		case SET_RALLY:
-			if (BuildingClass* const building = As_Building(Data.NavCom.Whom))
+			if (BuildingClass* const building = Data.NavCom.Whom.As_Building())
 			{
-				if (building->RallyPoint != Data.NavCom.Where)
+				if (building->RallyPoint != Data.NavCom.Where.As_Target())
 				{
-					building->RallyPoint = Data.NavCom.Where;
+					building->RallyPoint = Data.NavCom.Where.As_Target();
 					Map.Flag_To_Redraw(true);
 				}
 			}
