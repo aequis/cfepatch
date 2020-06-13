@@ -1088,4 +1088,9 @@ void Enable_Uncompressed_Shapes (void);
 */
 void On_Achievement_Event(const HouseClass* player_ptr, const char *achievement_type, const char *achievement_reason);
 
+bool CFE_Patch_Is_Wall(const ObjectTypeClass& object);
+bool CFE_Patch_Can_Have_Rally_Point(const ObjectClass& object);
+
+void Initialise_CFE_Patch_Config();
+
 #endif

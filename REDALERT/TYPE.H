@@ -812,6 +812,7 @@ class BuildingTypeClass : public TechnoTypeClass {
 		*/
 		static void const * WarFactoryOverlay;
 
+		OverlayType Overlay_Type() const;
 	private:
 
 		/*

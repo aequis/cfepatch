@@ -891,6 +891,70 @@ void BuildingClass::Player_Set_Rally_Point(TARGET target)
 	OutList.Add(EventClass(EventClass::SET_RALLY, TargetClass(As_Target()), TargetClass(target)));
 }
 
+bool BuildingClass::Unlimbo_Wall(COORDINATE coord)
+{
+	const CELL placecell = Coord_Cell(coord);
+	if (Can_Enter_Cell(placecell, FACING_NONE) == MOVE_OK) {
+
+		const OverlayType otype = Class->Overlay_Type();
+		if (otype != OVERLAY_NONE)
+		{
+
+			//Attempt to place the core pillar
+			const OverlayTypeClass& oclass = OverlayTypeClass::As_Reference(otype);
+			if (Create_Overlay_At(oclass, placecell))
+			{
+				if (ActiveCFEPatchConfig.WallBuildLength > 1)
+				{
+					/* cfehunter 12/06/2020
+					* Walk through every cardinal direction and run the same scanning logic as the build cursor
+					* Then place new wall overlays and transfer cell ownership up to the scan result distance
+					*/
+					for (FacingType dir : FacingCardinals)
+					{
+						const int scanDist = Map.Scan_For_Overlay(placecell, dir, otype, ActiveCFEPatchConfig.WallBuildLength);
+						CELL adjcell = placecell;
+						for (int i = 0; i < scanDist; ++i)
+						{
+							adjcell = Adjacent_Cell(adjcell, dir);
+
+							//If we fail to create the overlay here, abort this direction and move on
+							if (!Create_Overlay_At(oclass, adjcell))
+								break;
+						}
+					}
+				}
+				Transmit_Message(RADIO_OVER_OUT);
+				Map.Sight_From(Coord_Cell(coord), Class->SightRange, House);
+				delete this;
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+bool BuildingClass::Create_Overlay_At(const OverlayTypeClass& oclass, const CELL cell)
+{
+	/* cfehunter 12/06/2020
+	* The original wall creation code would leak memory if it failed to unlimbo. This shouldn't
+	*/
+	if (ObjectClass* const o = oclass.Create_One_Of(House))
+	{
+		if (o->Unlimbo(Cell_Coord(cell)))
+		{
+			Map[cell].Owner = House->Class->House;
+			return true;
+		}
+		else
+		{
+			delete o;
+		}
+	}
+	return false;
+}
+
 
 /***********************************************************************************************
  * BuildingClass::AI -- Handles non-graphic AI processing for buildings.                       *
@@ -1159,50 +1223,7 @@ bool BuildingClass::Unlimbo(COORDINATE coord, DirType dir)
 	**	converted to an overlay type.
 	*/
 	if (Class->IsWall) {
-		if (Can_Enter_Cell(Coord_Cell(coord), FACING_NONE) == MOVE_OK) {
-			OverlayType otype = OVERLAY_NONE;
-			switch (Class->Type) {
-				case STRUCT_SANDBAG_WALL:
-					otype	= OVERLAY_SANDBAG_WALL;
-					break;
-
-				case STRUCT_CYCLONE_WALL:
-					otype = OVERLAY_CYCLONE_WALL;
-					break;
-
-				case STRUCT_BRICK_WALL:
-					otype = OVERLAY_BRICK_WALL;
-					break;
-
-				case STRUCT_BARBWIRE_WALL:
-					otype = OVERLAY_BARBWIRE_WALL;
-					break;
-
-				case STRUCT_WOOD_WALL:
-					otype = OVERLAY_WOOD_WALL;
-					break;
-
-				case STRUCT_FENCE:
-					otype = OVERLAY_FENCE;
-					break;
-
-				default:
-					otype = OVERLAY_NONE;
-					break;
-
-			}
-			if (otype != OVERLAY_NONE) {
-				ObjectClass * o = OverlayTypeClass::As_Reference(otype).Create_One_Of(House);
-				if (o && o->Unlimbo(coord)) {
-					Map[coord].Owner = House->Class->House;
-					Transmit_Message(RADIO_OVER_OUT);
-					Map.Sight_From(Coord_Cell(coord), Class->SightRange, House);
-					delete this;
-					return(true);
-				}
-			}
-		}
-		return(false);
+		return Unlimbo_Wall(coord);
 	}
 
 	/*
@@ -1601,7 +1622,9 @@ ResultType BuildingClass::Take_Damage(int & damage, int distance, WarheadType wa
 
 TARGET BuildingClass::Target_For_Rally_Point(const SpeedType speed) const
 {
-	return Is_Target_Cell(RallyPoint) ? ::As_Target(Map.Nearby_Location(As_Cell(RallyPoint), speed)) : RallyPoint;
+	return Target_Legal(RallyPoint) ?
+		(Is_Target_Cell(RallyPoint) ? ::As_Target(Map.Nearby_Location(As_Cell(RallyPoint), speed)) : RallyPoint) :
+		::As_Target(Nearby_Location());
 }
 
 /***********************************************************************************************
@@ -1972,8 +1995,9 @@ void BuildingClass::Assign_Target(TARGET target)
 		target = TARGET_NONE;
 	}
 
-	if (Can_Have_Rally_Point() && Target_Legal(target)) {
+	if (RallyPoint != target && Can_Have_Rally_Point() && (target == TARGET_NONE || Target_Legal(target))) {
 		RallyPoint = target;
+		Map.Flag_To_Redraw(true);
 		return;
 	}
 
@@ -3502,13 +3526,13 @@ MoveType BuildingClass::Can_Enter_Cell(CELL cell, FacingType) const
 	assert(Buildings.ID(this) == ID);
 	assert(IsActive);
 
-	if (*this == STRUCT_CONST && IsDown) {
-		return(Map[cell].Is_Clear_To_Build(Class->Speed) ? MOVE_OK : MOVE_NO);
-	}
-
-	if (Can_Have_Rally_Point()) {
+	if (Can_Have_Rally_Point() && IsDown && IsLocked) {
 		SpeedType buildSpeed = Fetch_Techno_Type(Class->ToBuild, 0)->Speed; // 0 = Some of this kind
 		return Map[cell].Is_Clear_To_Move(buildSpeed, true, true) ? MOVE_OK : MOVE_NO;
+	}
+
+	if (*this == STRUCT_CONST && IsDown && IsLocked) {
+		return(Map[cell].Is_Clear_To_Build(Class->Speed) ? MOVE_OK : MOVE_NO);
 	}
 
 	if (!Debug_Map && ScenarioInit == 0 && Session.Type == GAME_NORMAL && House->IsPlayerControl && !Map[cell].IsMapped) {

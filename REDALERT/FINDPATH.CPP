@@ -571,7 +571,8 @@ bool FootClass::Find_Path_AStar(PathType& resultPath, const CELL source, CELL de
 	}
 
 	std::unordered_map<CELL, AStarCell> visited_cells;
-	std::vector<AStarCell*> open_list;
+	static std::vector<AStarCell*> open_list;
+	open_list.clear();
 
 	//Add the source cell to the open list
 	open_list.push_back(&visited_cells.emplace(source, AStarCell()).first->second);

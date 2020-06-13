@@ -101,6 +101,7 @@ struct CFEPatchConfig
 
 	int  HarvyQueueJumpCutoff = 3;
 	int  OreGrowthScale = 1;
+	int  WallBuildLength = 5;
 };
 
 extern CFEPatchConfig ActiveCFEPatchConfig;
@@ -407,6 +408,7 @@ extern unsigned char const					Pixel2Lepton[24];
 extern COORDINATE const 					StoppingCoordAbs[5];
 extern CELL const 							AdjacentCell[FACING_COUNT];
 extern COORDINATE const 					AdjacentCoord[FACING_COUNT];
+extern const FacingType						FacingCardinals[4];
 extern unsigned char const					RemapCiv2[];
 extern unsigned char const					RemapCiv4[];
 extern unsigned char const					RemapCiv5[];

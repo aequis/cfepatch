@@ -83,7 +83,7 @@
     <LinkIncremental>false</LinkIncremental>
     <OutDir>..\bin\$(PlatformName)\</OutDir>
     <IntDir>$(PlatformName)\$(Configuration)\</IntDir>
-    <TargetName>$(ProjectName)I</TargetName>
+    <TargetName>$(ProjectName)</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -123,7 +123,7 @@
       <SDLCheck>false</SDLCheck>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <PreprocessorDefinitions>TRUE_FALSE_DEFINED;ENGLISH;WIN32;_DEBUG;_WINDOWS;_USRDLL;REDALERT_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_HAS_EXCEPTIONS=0;TRUE_FALSE_DEFINED;ENGLISH;WIN32;_DEBUG;_WINDOWS;_USRDLL;REDALERT_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>false</ExceptionHandling>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <StructMemberAlignment>1Byte</StructMemberAlignment>
@@ -197,6 +197,8 @@
     <ClCompile Include="CDATA.CPP" />
     <ClCompile Include="CDFILE.CPP" />
     <ClCompile Include="CELL.CPP" />
+	<ClCompile Include="CFEPATCHQUERY.CPP" />
+	<ClCompile Include="CFEUTIL.CPP" />
     <ClCompile Include="CHECKBOX.CPP" />
     <ClCompile Include="CHEKLIST.CPP" />
     <ClCompile Include="CLASS.CPP" />
@@ -485,6 +487,7 @@
     <ClInclude Include="CCPTR.H" />
     <ClInclude Include="CDFILE.H" />
     <ClInclude Include="CELL.H" />
+	<ClInclude Include="CFEDEBUG.H" />
     <ClInclude Include="CHECKBOX.H" />
     <ClInclude Include="CHEKLIST.H" />
     <ClInclude Include="COLRLIST.H" />
