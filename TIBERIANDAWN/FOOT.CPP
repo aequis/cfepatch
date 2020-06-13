@@ -2056,3 +2056,67 @@ COORDINATE FootClass::Likely_Coord(void) const
 	}
 	return(Target_Coord());
 }
+
+/***********************************************************************************************
+ * FootClass::Find_Docking_Bay -- Searches for a close docking bay.                            *
+ *                                                                                             *
+ *    This routine will be used to find a building that can serve as a docking bay. The        *
+ *    closest building that qualifies will be returned. If no building could be found then     *
+ *    return with NULL. Unlike the version in Techo, this checks if the bay is reachable       *
+ *                                                                                             *
+ * INPUT:   b  -- The structure type to look for.                                              *
+ *                                                                                             *
+ *          friendly -- Allow searching for allied buildings as well.                          *
+ *                                                                                             *
+ * OUTPUT:  Returns with a pointer to the building that can serve as the best docking bay.     *
+ *                                                                                             *
+ * WARNINGS:   This routine might return NULL even if there are buildings of the specified     *
+ *             type available. This is the case when the building(s) are currently busy and    *
+ *             cannot serve as a docking bay at the moment.                                    *
+ *                                                                                             *
+ * HISTORY:                                                                                    *
+ *   13/06/2020 cfehunter : Created.                                                           *
+ *=============================================================================================*/
+BuildingClass* FootClass::Find_Docking_Bay(StructType b, bool friendly) const
+{
+	BuildingClass* best = 0;
+	/*
+	**	First check to see if there are ANY buildings of the specified
+	**	type in thi house's inventory. If not, then don't bother to scan
+	**	for one.
+	*/
+	if (House->BScan & (1L << b)) {
+		int bestval = (std::numeric_limits<int>::max)();;
+
+		const bool is_aircraft = What_Am_I() == RTTI_AIRCRAFT;
+
+		/*
+		**	Loop through all the buildings and find the one that matches the specification
+		**	and is willing to dock with this object.
+		*/
+		for (void* raw_building : Buildings.ActivePointers) {
+			BuildingClass* building = reinterpret_cast<BuildingClass*>(raw_building);
+
+			/*
+			**	Check to see if the building qualifies (preliminary scan).
+			*/
+			if (!building->IsInLimbo &&
+				*building == b &&
+				(friendly ? building->House->Is_Ally(this) : building->House == House) &&
+				const_cast<FootClass&>(*this).TechnoClass::Transmit_Message(RADIO_CAN_LOAD, building) == RADIO_ROGER) {
+
+				/*
+				**	If the building qualifies and this building is better than the
+				**	last qualifying building (as rated by distance), then record
+				**	this building and keep scanning.
+				*/
+				const int distance = is_aircraft ? Distance(building) :  Find_Path_AStar(nullptr, Coord_Cell(Center_Coord()), building->Nearby_Location(), 1, MOVE_TEMP, -1);
+				if (distance && (distance < bestval || building->IsLeader)) {
+					best = building;
+					bestval = distance;
+				}
+			}
+		}
+	}
+	return best;
+}
