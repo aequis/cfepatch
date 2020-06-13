@@ -153,7 +153,7 @@ bool BuildingClass::Can_Have_Rally_Point() const
 {
 	switch (Class->ToBuild)
 	{
-		case RTTI_AIRCRAFTTYPE:
+		// case RTTI_AIRCRAFTTYPE:
 		case RTTI_INFANTRYTYPE:
 		case RTTI_UNITTYPE:
 		case RTTI_VESSELTYPE:
@@ -2089,7 +2089,13 @@ int BuildingClass::Exit_Object(TechnoClass * base)
 					ScenarioInit++;
 					cell = Find_Exit_Cell(base);
 					if (cell != 0 && base->Unlimbo(Cell_Coord(cell), Direction(Cell_Coord(cell)))) {
-						base->Assign_Mission(MISSION_GUARD);
+						if (Can_Have_Rally_Point() && RallyPoint) {
+							base->Set_Mission(MISSION_MOVE);
+							base->Assign_Destination(Target_For_Rally_Point(base->Techno_Type_Class()->Speed));
+						}
+						else {
+							base->Assign_Mission(MISSION_GUARD);
+						}
 						ScenarioInit--;
 						return(2);
 					}
