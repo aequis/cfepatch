@@ -49,3 +49,8 @@ bool CFE_Patch_Is_Wall(const ObjectTypeClass& object)
 {
 	return object.What_Am_I() == RTTI_BUILDINGTYPE && static_cast<const BuildingTypeClass&>(object).IsWall;
 }
+
+bool CFE_Patch_Can_Have_Rally_Point(const ObjectClass& object)
+{
+	return object.What_Am_I() == RTTI_BUILDING && static_cast<const BuildingClass&>(object).Can_Have_Rally_Point();
+}

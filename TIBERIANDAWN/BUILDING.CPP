@@ -1843,7 +1843,8 @@ void BuildingClass::Look(bool)
 
 TARGET BuildingClass::Target_For_Rally_Point() const
 {
-	return Is_Target_Cell(RallyPoint) ? ::As_Target(Map.Nearby_Location(As_Cell(RallyPoint))) : RallyPoint;
+	return Target_Legal(RallyPoint) ? (Is_Target_Cell(RallyPoint) ? ::As_Target(Map.Nearby_Location(As_Cell(RallyPoint))) : RallyPoint)
+		: ::As_Target(Nearby_Location());
 }
 
 /***********************************************************************************************

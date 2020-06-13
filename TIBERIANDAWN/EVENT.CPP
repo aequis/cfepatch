@@ -651,6 +651,9 @@ CCDebugString ("C&C95 - Primary building packet received\n");
 				techno->Assign_Target(TARGET_NONE);
 				techno->Enter_Idle_Mode();
 			}
+			else if (techno && CFE_Patch_Can_Have_Rally_Point(*techno)) {
+				techno->Assign_Target(TARGET_NONE);
+			}
 			break;
 
 		/*
