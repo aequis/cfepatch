@@ -521,8 +521,14 @@ void DriveClass::Assign_Destination(TARGET target)
 	**	facility is currently not involved with some other unit (radio or unloading).
 	*/
 	if (b && *b == STRUCT_REPAIR) {
-		if (b->In_Radio_Contact()) {
+		if (b->In_Radio_Contact() && !ActiveCFEPatchConfig.EnableRepairQueue) {
 			target = 0;
+		} //Just get in line if repair queues are enabled
+		else if (ActiveCFEPatchConfig.EnableRepairQueue) {
+			ArchiveTarget = b->As_Target();
+			FootClass::Assign_Destination(b->Nearby_Location());
+			Path[0] = FACING_NONE;
+			Transmit_Message(RADIO_QUEUE, b);
 		} else {
 
 			/*

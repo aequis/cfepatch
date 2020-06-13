@@ -82,9 +82,13 @@ struct CFEPatchConfig
 	bool EnableOOMRepair = false;
 	bool EnableRallyPoints = false;
 	bool EnableHarvyQueueJump = false;
+	bool EnableRepairQueue = false;
+	bool EnableHarvySelfRepair = false;
+	bool DisableCommandoAirstrikes = false;
 	int  BuildingGap = 2;
 	int  HarvyQueueJumpCutoff = 3;
 	int  TibGrowthScale = 1;
+	int  WallBuildLength = 5;
 };
 
 extern CFEPatchConfig ActiveCFEPatchConfig;
@@ -365,6 +369,7 @@ extern unsigned char const					Pixel2Lepton[24];
 extern COORDINATE const 							StoppingCoordAbs[5];
 extern CELL const 							AdjacentCell[FACING_COUNT];
 extern COORDINATE const 							AdjacentCoord[FACING_COUNT];
+extern const FacingType						FacingCardinals[4];
 
 extern int SoundOn;
 //extern GraphicBufferClass	SeenPage;

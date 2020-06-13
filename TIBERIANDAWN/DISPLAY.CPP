@@ -900,13 +900,16 @@ bool DisplayClass::Passes_Proximity_Check(ObjectTypeClass const * object, Houses
 	**	have been a success.
 	*/
 	ptr = list;
+	bool proximityPass = false;
 	while (*ptr != REFRESH_EOL) {
-		CELL	cell = trycell + *ptr++;
+		CELL cell = trycell + *ptr++;
 
-		if (Is_Cell_In_Radius_To_Friendly_House(house, cell, ActiveCFEPatchConfig.BuildingGap))
-			return true;
+		if (!Map.In_Radar(cell))
+			return false;
+
+		proximityPass = proximityPass || Is_Cell_In_Radius_To_Friendly_House(house, cell, ActiveCFEPatchConfig.BuildingGap);
 	}
-	return(false);
+	return proximityPass;
 }
 
 #endif //USE_RA_AI
@@ -1159,6 +1162,8 @@ void DisplayClass::AI(KeyNumType & input, int x, int y)
 		Get_Mouse_Y() >= (TacPixelY + Lepton_To_Pixel(TacLeptonHeight)))) {
 			Mouse_Left_Release(-1, Get_Mouse_X(), Get_Mouse_Y(), NULL, ACTION_NONE);
 	}
+
+	Update_Placement_Cursor();
 
 	MapClass::AI(input, x, y);
 }
@@ -4386,4 +4391,56 @@ ActionType Best_Object_Action(ObjectClass* object)
 ActionType Best_Object_Action(CELL cell)
 {
 	return Best_Object_Action(CurrentObject.Raw(), cell);
+}
+
+
+/***********************************************************************************************
+ * DisplayClass::Update_Placement_Cursor -- per-tick logic for the placement cursor            *
+ *                                                                                             *
+ *    This routine will run any updates for the cursor while in placement mode                 *
+ *                                                                                             *
+ * INPUT:   none                                                                               *
+ *                                                                                             *
+ * OUTPUT:  none                                                                               *
+ *                                                                                             *
+ * WARNINGS:  none                                                                             *
+ *                                                                                             *
+ * HISTORY:                                                                                    *
+ * 12/06/2020 cfehunter: created                                                               *
+ *=============================================================================================*/
+void DisplayClass::Update_Placement_Cursor()
+{
+	if (ActiveCFEPatchConfig.WallBuildLength > 1 && In_Radar(ZoneCell))
+	{
+		const BuildingTypeClass* const placementBuilding = PendingObject && PendingObject->What_Am_I() == RTTI_BUILDINGTYPE ? static_cast<const BuildingTypeClass*>(PendingObject) : nullptr;
+
+		if (placementBuilding && placementBuilding->IsWall)
+		{
+			const OverlayType wallOverlay = placementBuilding->Overlay_Type();
+
+			static short offsetlist[50];
+			static constexpr int MaxOffsets = sizeof(offsetlist) / sizeof(offsetlist[0]) - 1;
+			int offsetslength = 1;
+			offsetlist[0] = 0;
+
+			for (FacingType dir : FacingCardinals)
+			{
+				const int scandist = Scan_For_Overlay(ZoneCell, dir, wallOverlay, ActiveCFEPatchConfig.WallBuildLength);
+
+				//Break out if we're going to overflow the buffer
+				if (offsetslength + scandist > MaxOffsets)
+					break;
+
+				CELL current = ZoneCell;
+				for (int i = 0; i < scandist; ++i)
+				{
+					current = Adjacent_Cell(current, dir);
+					offsetlist[offsetslength++] = current - ZoneCell - ZoneOffset;
+				}
+			}
+			offsetlist[offsetslength] = REFRESH_EOL;
+			Set_Cursor_Shape(offsetlist);
+		}
+	}
+
 }

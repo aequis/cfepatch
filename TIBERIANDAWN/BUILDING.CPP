@@ -193,6 +193,7 @@ bool BuildingClass::Can_Have_Rally_Point() const
 	case STRUCT_AIRSTRIP:
 	case STRUCT_BARRACKS:
 	case STRUCT_HAND:
+	case STRUCT_REPAIR:
 		return ActiveCFEPatchConfig.EnableRallyPoints;
 	default:
 		return false;
@@ -268,6 +269,11 @@ RadioMessageType BuildingClass::Receive_Message(RadioClass * from, RadioMessageT
 
 		case RADIO_CAN_LOAD:
 			TechnoClass::Receive_Message(from, message, param);
+
+			//Always allow units to load if queueing is enabled and they'd otherwise be able to load
+			if (ActiveCFEPatchConfig.EnableRepairQueue && BState != BSTATE_CONSTRUCTION && Class->Type == STRUCT_REPAIR && (from->What_Am_I() == RTTI_UNIT || from->What_Am_I() == RTTI_AIRCRAFT))
+				return RADIO_ROGER;
+
 			if (BState == BSTATE_CONSTRUCTION || (!ScenarioInit && In_Radio_Contact())) return(RADIO_NEGATIVE);
 			switch (Class->Type) {
 				case STRUCT_AIRSTRIP:
@@ -431,6 +437,10 @@ RadioMessageType BuildingClass::Receive_Message(RadioClass * from, RadioMessageT
 				if (Distance(from) < 0x0180) {
 					return(RADIO_ROGER);
 				}
+				else if (ActiveCFEPatchConfig.EnableRepairQueue) {
+					Transmit_Message(RADIO_UNTETHER);
+					Transmit_Message(RADIO_OVER_OUT);
+				}
 			}
 
 			//Turn off the refinery lights - LLL April 22, 2020
@@ -448,6 +458,25 @@ RadioMessageType BuildingClass::Receive_Message(RadioClass * from, RadioMessageT
 			}
 		
 			return(RADIO_ROGER);
+
+		case RADIO_QUEUE:
+			if (Class->Type == STRUCT_REPAIR && ActiveCFEPatchConfig.EnableRepairQueue && In_Radio_Contact()) {
+				//If we have an idle unit on the pad, kick them out
+				FootClass& contact = static_cast<FootClass&>(*Contact_With_Whom());
+				if (contact.Health_Ratio() >= 0x0100 && Transmit_Message(RADIO_NEED_TO_MOVE) == RADIO_ROGER ){
+					const TARGET rallyTarget = Target_For_Rally_Point();
+
+					//Make sure units dont rally to themselves. Only a problem for repair/reload pads
+					long moveTarget = (long)(contact.As_Target() != rallyTarget ? rallyTarget : ::As_Target(Nearby_Location()));
+					if (Transmit_Message(RADIO_MOVE_HERE, moveTarget) == RADIO_ROGER)
+					{
+						Enter_Idle_Mode();
+						return RADIO_ROGER;
+					}
+				}
+				return RADIO_NEGATIVE;
+			}
+			break;
 	}
 
 	/*
@@ -917,6 +946,69 @@ void BuildingClass::Player_Set_Rally_Point(TARGET target)
 	OutList.Add(EventClass(EventClass::SET_RALLY, As_Target(), target));
 }
 
+bool BuildingClass::Unlimbo_Wall(COORDINATE coord)
+{
+	const CELL placecell = Coord_Cell(coord);
+	if (Can_Enter_Cell(placecell, FACING_NONE) == MOVE_OK) {
+
+		const OverlayType otype = Class->Overlay_Type();
+		if (otype != OVERLAY_NONE)
+		{
+
+			//Attempt to place the core pillar
+			const OverlayTypeClass& oclass = OverlayTypeClass::As_Reference(otype);
+			if (Create_Overlay_At(oclass, placecell))
+			{
+				if (ActiveCFEPatchConfig.WallBuildLength > 1)
+				{
+					/* cfehunter 12/06/2020
+					* Walk through every cardinal direction and run the same scanning logic as the build cursor
+					* Then place new wall overlays and transfer cell ownership up to the scan result distance
+					*/
+					for (FacingType dir : FacingCardinals)
+					{
+						const int scanDist = Map.Scan_For_Overlay(placecell, dir, otype, ActiveCFEPatchConfig.WallBuildLength);
+						CELL adjcell = placecell;
+						for (int i = 0; i < scanDist; ++i)
+						{
+							adjcell = Adjacent_Cell(adjcell, dir);
+
+							//If we fail to create the overlay here, abort this direction and move on
+							if (!Create_Overlay_At(oclass, adjcell))
+								break;
+						}
+					}
+				}
+				Transmit_Message(RADIO_OVER_OUT);
+				Delete_This();
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+bool BuildingClass::Create_Overlay_At(const OverlayTypeClass& oclass, const CELL cell)
+{
+	/* cfehunter 12/06/2020
+	* The original wall creation code would leak memory if it failed to unlimbo. This shouldn't
+	*/
+	if (ObjectClass* const o = oclass.Create_One_Of(House))
+	{
+		if (o->Unlimbo(Cell_Coord(cell)))
+		{
+			Map[cell].Owner = House->Class->House;
+			return true;
+		}
+		else
+		{
+			delete o;
+		}
+	}
+	return false;
+}
+
 
 /***********************************************************************************************
  * BuildingClass::AI -- Handles non-graphic AI processing for buildings.                       *
@@ -1369,42 +1461,8 @@ bool BuildingClass::Unlimbo(COORDINATE coord, DirType dir)
 	**	If this is a wall type building, then it never gets unlimboed. Instead, it gets
 	**	converted to an overlay type.
 	*/
-	if (Class->IsWall) {
-		if (Can_Enter_Cell(Coord_Cell(coord), FACING_NONE) == MOVE_OK) {
-			OverlayType otype = OVERLAY_NONE;
-			switch (Class->Type) {
-				case STRUCT_SANDBAG_WALL:
-					otype	= OVERLAY_SANDBAG_WALL;
-					break;
-
-				case STRUCT_CYCLONE_WALL:
-					otype = OVERLAY_CYCLONE_WALL;
-					break;
-
-				case STRUCT_BRICK_WALL:
-					otype = OVERLAY_BRICK_WALL;
-					break;
-
-				case STRUCT_BARBWIRE_WALL:
-					otype = OVERLAY_BARBWIRE_WALL;
-					break;
-
-				case STRUCT_WOOD_WALL:
-					otype = OVERLAY_WOOD_WALL;
-					break;
-			}
-			if (otype != OVERLAY_NONE) {
-				ObjectClass * o = OverlayTypeClass::As_Reference(otype).Create_One_Of(House);
-				if (o && o->Unlimbo(coord)) {
-					Map[Coord_Cell(coord)].Owner = House->Class->House;
-					Transmit_Message(RADIO_OVER_OUT);
-					Delete_This();
-					return(true);
-				}
-			}
-		}
-		return(false);
-	}
+	if (Class->IsWall)
+		return Unlimbo_Wall(coord);
 
 	/*
 	**	Normal building unlimbo process.
@@ -1785,7 +1843,8 @@ void BuildingClass::Look(bool)
 
 TARGET BuildingClass::Target_For_Rally_Point() const
 {
-	return Is_Target_Cell(RallyPoint) ? ::As_Target(Map.Nearby_Location(As_Cell(RallyPoint))) : RallyPoint;
+	return Target_Legal(RallyPoint) ? (Is_Target_Cell(RallyPoint) ? ::As_Target(Map.Nearby_Location(As_Cell(RallyPoint))) : RallyPoint)
+		: ::As_Target(Nearby_Location());
 }
 
 /***********************************************************************************************
@@ -2166,11 +2225,11 @@ void BuildingClass::Assign_Target(TARGET target)
 		target = TARGET_NONE;
 	}
 
-	if (Can_Have_Rally_Point() && Target_Legal(target)) {
+	if (RallyPoint != target && Can_Have_Rally_Point() && (target == TARGET_NONE || Target_Legal(target))) {
 		RallyPoint = target;
+		Map.Flag_To_Redraw(true);
 		return;
 	}
-
 	TechnoClass::Assign_Target(target);
 }
 
@@ -3852,7 +3911,7 @@ MoveType BuildingClass::Can_Enter_Cell(CELL cell, FacingType) const
 {
 	Validate();
 
-	if (Can_Have_Rally_Point() || (*this == STRUCT_CONST && IsDown)) {
+	if (IsDown && IsLocked && (Can_Have_Rally_Point() || *this == STRUCT_CONST)) {
 		return(Map[cell].Is_Generally_Clear() ? MOVE_OK : MOVE_NO);
 	}
 
@@ -5495,13 +5554,16 @@ bool BuildingClass::Passes_Proximity_Check(CELL homecell)
 	**	have been a success.
 	*/
 	short const * ptr = Occupy_List(true);
+	bool proximityPass = false;
 	while (*ptr != REFRESH_EOL) {
 		CELL cell = homecell + *ptr++;
 
-		if (Is_Cell_In_Radius_To_Friendly_House(House->Class->House, cell, ActiveCFEPatchConfig.BuildingGap))
-			return true;
+		if (!Map.In_Radar(cell))
+			return false;
+
+		proximityPass = proximityPass || Is_Cell_In_Radius_To_Friendly_House(House->Class->House, cell, ActiveCFEPatchConfig.BuildingGap);
 	}
-	return(false);
+	return proximityPass;
 }
 
 bool Is_Cell_Friendly_To_House(const HousesType house, const CELL cell)

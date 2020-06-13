@@ -87,28 +87,6 @@ extern bool Server_Remote_Connect(void);
 extern bool Client_Remote_Connect(void);
 extern bool SpawnedFromWChat;
 
-void Init_CFEPatch()
-{
-	char* const fileBuffer = _ShapeBuffer;
-	CCFileClass file("CFEPATCH.INI");
-	memset(fileBuffer, '\0', _ShapeBufferSize);
-
-	if (file.Is_Available())
-	{
-		file.Read(fileBuffer, _ShapeBufferSize - 1);
-		file.Close();
-
-		ActiveCFEPatchConfig.EnableASPathing = WWGetPrivateProfileInt("FEATURES", "ASTAR_PATHING", 0, fileBuffer);
-		ActiveCFEPatchConfig.EnableOOMRepair = WWGetPrivateProfileInt("FEATURES", "OOM_REPAIR", 0, fileBuffer);
-		ActiveCFEPatchConfig.EnableRallyPoints = WWGetPrivateProfileInt("FEATURES", "RALLY_POINTS", 0, fileBuffer);
-		ActiveCFEPatchConfig.EnableHarvyQueueJump = WWGetPrivateProfileInt("FEATURES", "HARVY_QUEUE_JUMP", 0, fileBuffer);
-
-		ActiveCFEPatchConfig.BuildingGap = WWGetPrivateProfileInt("SETTINGS", "BUILDING_GAP", 2, fileBuffer);
-		ActiveCFEPatchConfig.HarvyQueueJumpCutoff = WWGetPrivateProfileInt("SETTINGS", "QUEUE_JUMP_CUTOFF", 3, fileBuffer);
-		ActiveCFEPatchConfig.TibGrowthScale = WWGetPrivateProfileInt("SETTINGS", "TIB_GROWTH_SCALE", 1, fileBuffer);
-	}
-}
-
 /***********************************************************************************************
  * Init_Game -- Main game initialization routine.                                              *
  *                                                                                             *
@@ -735,7 +713,7 @@ bool Init_Game(int , char *[])
 	*/
 	Options.Load_Settings();
 
-	Init_CFEPatch();
+	Initialise_CFE_Patch_Config();
 
 	return(true);
 }

@@ -296,11 +296,14 @@ class BuildingClass : public TechnoClass
 		int Validate(void) const;
 
 		bool Can_Have_Rally_Point() const;
-		virtual void Set_Unselected_By_Player(HouseClass* player = NULL) override;
+		virtual void Set_Unselected_By_Player(HouseClass* player = nullptr) override;
 	private:
 		void  Drop_Debris(TARGET source = TARGET_NONE);
 		virtual BulletClass * Fire_At(TARGET target, int which);
 		void  Player_Set_Rally_Point(TARGET target);
+
+		bool Unlimbo_Wall(COORDINATE coord);
+		bool Create_Overlay_At(const OverlayTypeClass& oclass, const CELL cell);
 
 		/*
 		** Some additional padding in case we need to add data to the class and maintain backwards compatibility for save/load

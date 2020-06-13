@@ -6,3 +6,4 @@
 /bin
 /REDALERT/Win32
 /TIBERIANDAWN/Win32
+*.vcxproj.user

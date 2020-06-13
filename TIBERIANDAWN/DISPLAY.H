@@ -318,6 +318,8 @@ public:		//ST - 1/21/2019 11:59AM
 		void Redraw_Shadow(void);
 		void Redraw_Shadow_Rects(void);
 
+		void Update_Placement_Cursor();
+		
 		/*
 		**	This bit array is used to flag cells to be redrawn. If the icon needs to
 		**	be redrawn for a cell, then the corresponding flag will be true.
