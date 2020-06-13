@@ -3911,7 +3911,7 @@ MoveType BuildingClass::Can_Enter_Cell(CELL cell, FacingType) const
 {
 	Validate();
 
-	if (IsDown && (Can_Have_Rally_Point() || *this == STRUCT_CONST)) {
+	if (IsDown && IsLocked && (Can_Have_Rally_Point() || *this == STRUCT_CONST)) {
 		return(Map[cell].Is_Generally_Clear() ? MOVE_OK : MOVE_NO);
 	}
 
