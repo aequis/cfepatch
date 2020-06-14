@@ -1,5 +1,7 @@
 #include "FUNCTION.H"
 
+extern bool DLL_Export_Get_Input_Key_State(KeyNumType key);
+
 bool CFE_Patch_Can_Enter_Override(const ObjectClass& object)
 {
 	if (ActiveCFEPatchConfig.EnableRepairQueue && object.What_Am_I() == RTTI_BUILDING) {
@@ -53,4 +55,9 @@ bool CFE_Patch_Is_Wall(const ObjectTypeClass& object)
 bool CFE_Patch_Can_Have_Rally_Point(const ObjectClass& object)
 {
 	return object.What_Am_I() == RTTI_BUILDING && static_cast<const BuildingClass&>(object).Can_Have_Rally_Point();
+}
+
+bool CFE_Patch_Should_Extend_Walls()
+{
+	return ActiveCFEPatchConfig.WallBuildLength > 1 && !DLL_Export_Get_Input_Key_State(KN_LCTRL);
 }

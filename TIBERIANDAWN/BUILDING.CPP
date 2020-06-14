@@ -959,7 +959,7 @@ bool BuildingClass::Unlimbo_Wall(COORDINATE coord)
 			const OverlayTypeClass& oclass = OverlayTypeClass::As_Reference(otype);
 			if (Create_Overlay_At(oclass, placecell))
 			{
-				if (ActiveCFEPatchConfig.WallBuildLength > 1)
+				if (CFE_Patch_Should_Extend_Walls())
 				{
 					/* cfehunter 12/06/2020
 					* Walk through every cardinal direction and run the same scanning logic as the build cursor

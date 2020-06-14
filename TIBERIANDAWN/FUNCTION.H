@@ -989,4 +989,5 @@ bool CFE_Patch_A10_Override(const ObjectTypeClass& object, const HousesType hous
 bool CFE_Patch_House_Has_Any_Buildings_In_Map(HouseClass& house);
 bool CFE_Patch_Is_Wall(const ObjectTypeClass& object);
 bool CFE_Patch_Can_Have_Rally_Point(const ObjectClass& object);
+bool CFE_Patch_Should_Extend_Walls();
 void Initialise_CFE_Patch_Config();
