@@ -4357,12 +4357,16 @@ void DLLExportClass::Calculate_Placement_Distances(BuildingTypeClass* placement_
 			if ((base && base->House->Class->House == PlayerPtr->Class->House) || (Map[cell].Owner == PlayerPtr->Class->House)) {
 				placement_distance[cell] = 0U;
 				
+				/* 14/06/2020 cfehunter
+				** placement_distances are really only a boolean at this point.
+				** even the base game only flood fills adjacent tiles, so just set all the valid tiles to 0
+				*/
 				for (int adjY = y - buildingGap, adjMaxY = y + buildingGap; adjY <= adjMaxY; ++adjY) {
 					for (int adjX = x - buildingGap, adjMaxX = x + buildingGap; adjX <= adjMaxX; ++adjX) {
 						//XY_CELL is incompatible with this because x/y do not take the map offset into account
 						const CELL adjCell = map_cell_x + adjX + ((map_cell_y + adjY) << 6);
 						if (Map.In_Radar(adjCell))
-							placement_distance[adjCell] = (std::min<int>)(placement_distance[adjCell], Distance(adjCell, cell));
+							placement_distance[adjCell] = 0U;
 					}
 				}
 
