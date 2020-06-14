@@ -958,6 +958,35 @@ bool BuildingClass::Unlimbo_Wall(COORDINATE coord)
 					* Walk through every cardinal direction and run the same scanning logic as the build cursor
 					* Then place new wall overlays and transfer cell ownership up to the scan result distance
 					*/
+
+					//FluffyQuack 14/06/2020: If WallsAlwaysHaveFullCost is true then we take money for each extra wall piece
+					BuildingTypeClass const * btype = NULL;
+					if (CFE_Patch_Should_Extend_Walls() && ActiveCFEPatchConfig.WallsAlwaysHaveFullCost)
+					{
+						//Get building type so we can get its cost
+						switch (otype) {
+						case OVERLAY_SANDBAG_WALL:
+							btype = &BuildingTypeClass::As_Reference(STRUCT_SANDBAG_WALL);
+							break;
+
+						case OVERLAY_CYCLONE_WALL:
+							btype = &BuildingTypeClass::As_Reference(STRUCT_CYCLONE_WALL);
+							break;
+
+						case OVERLAY_BRICK_WALL:
+							btype = &BuildingTypeClass::As_Reference(STRUCT_BRICK_WALL);
+							break;
+
+						case OVERLAY_BARBWIRE_WALL:
+							btype = &BuildingTypeClass::As_Reference(STRUCT_BARBWIRE_WALL);
+							break;
+
+						case OVERLAY_WOOD_WALL:
+							btype = &BuildingTypeClass::As_Reference(STRUCT_WOOD_WALL);
+							break;
+						}
+					}
+
 					for (FacingType dir : FacingCardinals)
 					{
 						const int scanDist = Map.Scan_For_Overlay(placecell, dir, otype, ActiveCFEPatchConfig.WallBuildLength);
@@ -966,9 +995,20 @@ bool BuildingClass::Unlimbo_Wall(COORDINATE coord)
 						{
 							adjcell = Adjacent_Cell(adjcell, dir);
 
+							//Check if player can afford wall
+							if (ActiveCFEPatchConfig.WallsAlwaysHaveFullCost && btype != NULL && House->Available_Money() < btype->Cost_Of())
+							{
+								Speak(VOX_NO_CASH);
+								break;
+							}
+
 							//If we fail to create the overlay here, abort this direction and move on
 							if (!Create_Overlay_At(oclass, adjcell))
 								break;
+
+							//Pay the cost of this extra wall
+							if (ActiveCFEPatchConfig.WallsAlwaysHaveFullCost && btype != NULL)
+								House->Spend_Money(btype->Cost_Of());
 						}
 					}
 				}

@@ -48,6 +48,7 @@ bool Populate_CFE_Patch_Config_From_INI(const char* path)
 		OverwriteIfValid(ActiveCFEPatchConfig.HarvyQueueJumpCutoff      , WWGetPrivateProfileInt("SETTINGS", "QUEUE_JUMP_CUTOFF", InvalidSetting, fileBuffer));
 		OverwriteIfValid(ActiveCFEPatchConfig.TibGrowthScale            , WWGetPrivateProfileInt("SETTINGS", "TIB_GROWTH_SCALE", InvalidSetting, fileBuffer));
 		OverwriteIfValid(ActiveCFEPatchConfig.WallBuildLength           , WWGetPrivateProfileInt("SETTINGS", "WALL_BUILD_LENGTH", InvalidSetting, fileBuffer));
+		OverwriteIfValid(ActiveCFEPatchConfig.WallsAlwaysHaveFullCost	, WWGetPrivateProfileInt("SETTINGS", "WALLS_HAVE_FULL_COST", InvalidSetting, fileBuffer));
 
 		//Clamp Wall Length between 1 (build at all) and 10 (buffer limits)
 		ActiveCFEPatchConfig.WallBuildLength = (std::max)(1, (std::min)(ActiveCFEPatchConfig.WallBuildLength, 10));
