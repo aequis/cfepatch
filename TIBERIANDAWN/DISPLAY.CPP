@@ -4410,12 +4410,12 @@ ActionType Best_Object_Action(CELL cell)
  *=============================================================================================*/
 void DisplayClass::Update_Placement_Cursor()
 {
-	const BuildingTypeClass* const placementBuilding = PendingObject && PendingObject->What_Am_I() == RTTI_BUILDINGTYPE ? static_cast<const BuildingTypeClass*>(PendingObject) : nullptr;
-	if (placementBuilding && placementBuilding->IsWall)
+	const BuildingTypeClass* const placement_building = PendingObject && PendingObject->What_Am_I() == RTTI_BUILDINGTYPE ? static_cast<const BuildingTypeClass*>(PendingObject) : nullptr;
+	if (placement_building && placement_building->IsWall)
 	{
 		if (CFE_Patch_Should_Extend_Walls() && In_Radar(ZoneCell))
 		{
-			const OverlayType wallOverlay = placementBuilding->Overlay_Type();
+			const OverlayType wallOverlay = placement_building->Overlay_Type();
 
 			static short offsetlist[50];
 			static constexpr int MaxOffsets = sizeof(offsetlist) / sizeof(offsetlist[0]) - 1;
@@ -4441,7 +4441,7 @@ void DisplayClass::Update_Placement_Cursor()
 			Set_Cursor_Shape(offsetlist);
 		}
 		else if (CursorSize[1] != REFRESH_EOL) {
-			Set_Cursor_Shape(placementBuilding->Overlap_List());
+			Set_Cursor_Shape(placement_building->Occupy_List(true));
 		}
 	}
 
