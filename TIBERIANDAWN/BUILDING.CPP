@@ -450,31 +450,24 @@ RadioMessageType BuildingClass::Receive_Message(RadioClass * from, RadioMessageT
 
 			TechnoClass::Receive_Message(from, message, param);
 
-			//Either tell the unit to move to the rally point, or have it run away
-			if (Can_Have_Rally_Point() && Target_Legal(RallyPoint)) {
-				from->Set_Mission(MISSION_MOVE);
-				static_cast<FootClass*>(from)->Assign_Destination(Target_For_Rally_Point());
-				return RADIO_ROGER;
-			}
-		
+			//Rally the unit
+			Rally_Unit(static_cast<FootClass&>(*from));
 			return(RADIO_ROGER);
 
 		case RADIO_QUEUE:
 			if (Class->Type == STRUCT_REPAIR && ActiveCFEPatchConfig.EnableRepairQueue && In_Radio_Contact()) {
 				//If we have an idle unit on the pad, kick them out
 				FootClass& contact = static_cast<FootClass&>(*Contact_With_Whom());
-				if (contact.Health_Ratio() >= 0x0100 && Transmit_Message(RADIO_NEED_TO_MOVE) == RADIO_ROGER ){
-					const TARGET rallyTarget = Target_For_Rally_Point();
-
-					//Make sure units dont rally to themselves. Only a problem for repair/reload pads
-					long moveTarget = (long)(contact.As_Target() != rallyTarget ? rallyTarget : ::As_Target(Nearby_Location()));
-					if (Transmit_Message(RADIO_MOVE_HERE, moveTarget) == RADIO_ROGER)
+				if (contact.Health_Ratio() >= 0x0100 && Transmit_Message(RADIO_NEED_TO_MOVE) == RADIO_ROGER) {
+					if (!Rally_Unit(contact))
 					{
-						Enter_Idle_Mode();
-						return RADIO_ROGER;
+						long exit_target = ::As_Target(Nearby_Location());
+						if (!Transmit_Message(RADIO_MOVE_HERE, exit_target) == RADIO_ROGER)
+							return RADIO_NEGATIVE;
 					}
+					Enter_Idle_Mode();
 				}
-				return RADIO_NEGATIVE;
+				return RADIO_ROGER;
 			}
 			break;
 	}
@@ -5561,39 +5554,35 @@ bool BuildingClass::Passes_Proximity_Check(CELL homecell)
 		if (!Map.In_Radar(cell))
 			return false;
 
-		proximityPass = proximityPass || Is_Cell_In_Radius_To_Friendly_House(House->Class->House, cell, ActiveCFEPatchConfig.BuildingGap);
+		proximityPass = proximityPass || CFE_Patch_Is_Cell_In_Radius_To_Friendly_House(House->Class->House, cell, ActiveCFEPatchConfig.BuildingGap);
 	}
 	return proximityPass;
 }
 
-bool Is_Cell_Friendly_To_House(const HousesType house, const CELL cell)
+/***********************************************************************************************
+ * BuildingClass::Rally_Unit -- Order a unit to the buildings rally point                      *
+ *                                                                                             *
+ *    This routine will attempt to order a unit to move the the buildings rally point.         *
+ *    If the building has a rally point, and the unit should be rallyed.                       *
+ *                                                                                             *
+ * INPUT:   unit - unit to rally                                                               *
+ *                                                                                             *
+ * OUTPUT:  true if successful                                                                 *
+ *                                                                                             *
+ * WARNINGS: none                                                                              *
+ *                                                                                             *
+ * HISTORY:                                                                                    *
+ *   14/06/2020 cfehunter : Created.                                                           *
+ *=============================================================================================*/
+bool BuildingClass::Rally_Unit(FootClass& unit)
 {
-	if (Map[cell].Owner == house) {
-		return(true);
-	}
-
-	if (const BuildingClass* const base = Map[cell].Cell_Building()) {
-		if (base->House->Class->House == house) {
-			return true;
-		}
-	}
-	return false;
-}
-
-bool Is_Cell_In_Radius_To_Friendly_House(const HousesType house, const CELL cell, const int radius)
-{
-	if (Map.In_Radar(cell))
+	if (Can_Have_Rally_Point() && CFE_Patch_Unit_Should_Rally(unit) && Target_Legal(RallyPoint))
 	{
-		const int cellX = Cell_X(cell);
-		const int cellY = Cell_Y(cell);
-		for (int y = cellY - radius, yEnd = cellY + radius; y <= yEnd; ++y) {
-			for (int x = cellX - radius, xEnd = cellX + radius; x <= xEnd; ++x) {
-				const CELL nextCell = XY_Cell(x, y);
+		const TARGET rallyTarget = Target_For_Rally_Point();
 
-				if (Map.In_Radar(nextCell) && Is_Cell_Friendly_To_House(house, nextCell))
-					return true;
-			}
-		}
+		//Make sure units dont rally to themselves. Only a problem for repair/reload pads
+		long move_target = (long)(unit.As_Target() != rallyTarget ? rallyTarget : ::As_Target(Nearby_Location()));
+		return Target_Legal(move_target) && Transmit_Message(RADIO_MOVE_HERE, move_target, &unit) == RADIO_ROGER;
 	}
 	return false;
 }

@@ -907,7 +907,7 @@ bool DisplayClass::Passes_Proximity_Check(ObjectTypeClass const * object, Houses
 		if (!Map.In_Radar(cell))
 			return false;
 
-		proximityPass = proximityPass || Is_Cell_In_Radius_To_Friendly_House(house, cell, ActiveCFEPatchConfig.BuildingGap);
+		proximityPass = proximityPass || CFE_Patch_Is_Cell_In_Radius_To_Friendly_House(house, cell, ActiveCFEPatchConfig.BuildingGap);
 	}
 	return proximityPass;
 }

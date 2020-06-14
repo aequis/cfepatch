@@ -297,6 +297,8 @@ class BuildingClass : public TechnoClass
 
 		bool Can_Have_Rally_Point() const;
 		virtual void Set_Unselected_By_Player(HouseClass* player = nullptr) override;
+
+		bool Rally_Unit(FootClass& unit);
 	private:
 		void  Drop_Debris(TARGET source = TARGET_NONE);
 		virtual BulletClass * Fire_At(TARGET target, int which);

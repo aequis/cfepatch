@@ -61,3 +61,46 @@ bool CFE_Patch_Should_Extend_Walls()
 {
 	return ActiveCFEPatchConfig.WallBuildLength > 1 && !DLL_Export_Get_Input_Key_State(KN_LCTRL);
 }
+
+bool CFE_Patch_Is_Cell_Friendly_To_House(const HousesType house, const CELL cell)
+{
+	if (Map[cell].Owner == house) {
+		return(true);
+	}
+
+	if (const BuildingClass* const base = Map[cell].Cell_Building()) {
+		if (base->House->Class->House == house) {
+			return true;
+		}
+	}
+	return false;
+}
+
+bool CFE_Patch_Is_Cell_In_Radius_To_Friendly_House(const HousesType house, const CELL cell, const int radius)
+{
+	if (Map.In_Radar(cell))
+	{
+		const int cellX = Cell_X(cell);
+		const int cellY = Cell_Y(cell);
+		for (int y = cellY - radius, yEnd = cellY + radius; y <= yEnd; ++y) {
+			for (int x = cellX - radius, xEnd = cellX + radius; x <= xEnd; ++x) {
+				const CELL nextCell = XY_Cell(x, y);
+
+				if (Map.In_Radar(nextCell) && CFE_Patch_Is_Cell_Friendly_To_House(house, nextCell))
+					return true;
+			}
+		}
+	}
+	return false;
+}
+
+bool CFE_Patch_Unit_Should_Rally(const FootClass& object)
+{
+	switch (object.What_Am_I())
+	{
+	case RTTI_UNIT:
+		return !static_cast<const UnitClass&>(object).Class->IsToHarvest;
+	default:
+		return true;
+	}
+}
