@@ -129,6 +129,9 @@ void Initialise_CFE_Patch_Config()
 					{
 						write_file.Close();
 						CopyFileA(write_path.c_str(), ini_path.c_str(), FALSE);
+
+						//Delete the old file
+						DeleteFileA(write_path.c_str());
 					}
 				}
 			}
