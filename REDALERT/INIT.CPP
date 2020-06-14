@@ -427,13 +427,24 @@ bool Init_Game(int , char * [])
 	*/
 	Options.Load_Settings();
 
+	Initialise_CFE_Patch_Config();
+
+	if (ActiveCFEPatchConfig.BuildingGapOffset) {
+		for (int bindex = 0; bindex < BuildingTypes.Count(); ++bindex) {
+			BuildingTypeClass *building = BuildingTypes.Ptr(bindex);
+
+			building->Adjacent += ActiveCFEPatchConfig.BuildingGapOffset;
+			if (building->Adjacent < 0) {
+				building->Adjacent = 0;
+			}
+		}
+	}
+
 	/*
 	** Initialise the color lookup tables for the chronal vortex
 	*/
 	ChronalVortex.Stop();
 	ChronalVortex.Setup_Remap_Tables(Scen.Theater);
-
-	Initialise_CFE_Patch_Config();
 
 	return(true);
 }
