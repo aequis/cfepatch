@@ -4383,6 +4383,16 @@ int BuildingClass::Mission_Repair(void)
 						**	The repair step resulted in a completely repaired unit.
 						*/
 						case RADIO_ALL_DONE:
+							if (Can_Have_Rally_Point() && RallyPoint) {
+								TechnoClass* tech = Contact_With_Whom();
+
+								tech->Assign_Mission(MISSION_MOVE);
+								tech->Assign_Destination(Target_For_Rally_Point(tech->Techno_Type_Class()->Speed));
+							}
+							else {
+								Transmit_Message(RADIO_RUN_AWAY);
+								Transmit_Message(RADIO_OVER_OUT);
+							}
 
 							// MBL 04.27.2020: Make only audible to the correct player
 							// if (IsOwnedByPlayer) Speak(VOX_UNIT_REPAIRED);
