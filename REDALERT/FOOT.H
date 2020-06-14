@@ -347,7 +347,7 @@ class FootClass :	public TechnoClass
 		virtual void Fixup_Path(PathType *) {};
 		virtual void Set_Speed(int speed);
 		virtual MoveType Can_Enter_Cell(CELL cell, FacingType from=FACING_NONE) const;
-		int Optimize_Moves(PathType *path, MoveType threshhold);
+		int Optimize_Moves(PathType *path, MoveType threshhold) const;
 		virtual void Override_Mission(MissionType mission, TARGET tarcom, TARGET navcom);
 		virtual bool Restore_Mission(void);
 		CELL Adjust_Dest(CELL cell) const;
@@ -361,13 +361,15 @@ class FootClass :	public TechnoClass
 		CELL Safety_Point(CELL src, CELL dst, int start, int max);
 		int Rescue_Mission(TARGET tarcom);
 
+		virtual BuildingClass* Find_Docking_Bay(StructType b, bool friendly) const override;
+
 	private:
-		int Passable_Cell(CELL cell, FacingType face, int threat, MoveType threshhold);
+		int Passable_Cell(CELL cell, FacingType face, int threat, MoveType threshhold) const;
 		PathType * Find_Path(CELL dest, FacingType *final_moves, int maxlen, MoveType threshhold);
-		bool Find_Path_AStar(PathType& reuslt_path, const CELL source, CELL dest, const int maxLen, const MoveType threshhold, const int threat);
-		CELL Find_Passable_Position_Near(const CELL target, const int maxRadius, const MoveType threshhold, const int threat);
+		int Find_Path_AStar(PathType* const resultPath, const CELL source, CELL dest, const int maxLen, const MoveType threshhold, const int threat) const;
+		CELL Find_Passable_Position_Near(const CELL target, const int maxRadius, const MoveType threshhold, const int threat) const;
 		void Debug_Draw_Map(char const * txt, CELL start, CELL dest, bool pause);
-		void Debug_Draw_Path(PathType *path);
+		void Debug_Draw_Path(PathType *path) const;
 		bool Follow_Edge(CELL start, CELL target, PathType *path, FacingType search, FacingType olddir, int threat, int threat_stage, int max_cells, MoveType threshhold);
 		bool Register_Cell(PathType *path, CELL cell, FacingType dir, int cost, MoveType threshhold);
 		bool Unravel_Loop(PathType *path, CELL &cell, FacingType &dir, int sx, int sy, int dx, int dy, MoveType threshhold);

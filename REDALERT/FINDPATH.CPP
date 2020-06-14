@@ -473,7 +473,7 @@ bool Is_Cell_In_Overlap(const CELL cell, const unsigned long* const Overlap)
 	return Overlap[cell >> 5] & (1 << ((cell & 31) - 1));
 }
 
-CELL FootClass::Find_Passable_Position_Near(const CELL target, const int maxRadius, const MoveType threshhold, const int threat)
+CELL FootClass::Find_Passable_Position_Near(const CELL target, const int maxRadius, const MoveType threshhold, const int threat) const
 {
 	if (Passable_Cell(target, FACING_NONE, threat, threshhold)) {
 		return target;
@@ -530,7 +530,7 @@ CELL FootClass::Find_Passable_Position_Near(const CELL target, const int maxRadi
 	return 0;
 }
 
-bool FootClass::Find_Path_AStar(PathType& resultPath, const CELL source, CELL dest, const int maxLen, const MoveType threshhold, const int threat)
+int FootClass::Find_Path_AStar(PathType* const resultPath, const CELL source, CELL dest, const int maxLen, const MoveType threshhold, const int threat) const
 {
 	struct AStarCell {
 		AStarCell* prev = nullptr;
@@ -550,7 +550,7 @@ bool FootClass::Find_Path_AStar(PathType& resultPath, const CELL source, CELL de
 
 	//General error case early exits
 	if (maxLen <= 0 || source == dest) {
-		return false;
+		return 0;
 	}
 
 	//Target is impassable, try to account for that by finding a position nearby, or staying still if already close
@@ -562,11 +562,11 @@ bool FootClass::Find_Path_AStar(PathType& resultPath, const CELL source, CELL de
 
 			//Failed to find a passable position at or near the target or nearby position is further away or equidistant to our current position, so just stay put
 			if (nearbyDest == 0 || ::Distance(Cell_Coord(dest), Cell_Coord(nearbyDest)) >= distanceToDest) {
-				return false;
+				return 0;
 			}
 		}
 		else {
-			return false;
+			return 0;
 		}
 	}
 
@@ -615,33 +615,40 @@ bool FootClass::Find_Path_AStar(PathType& resultPath, const CELL source, CELL de
 
 	}
 
-	if (dest_result) {
+	if (dest_result)
+	{
+		const int total_path_length = dest_result->cell_distance_from_start;
+		
+		//If we don't have a path to fill in, then just return here
+		if (resultPath == nullptr)
+			return total_path_length;
+
 		//Cost is used for comparing paths with different threat thesholds, so use the overall cost regardless of truncation
-		resultPath.Cost = dest_result->cost_from_start;
+		resultPath->Cost = dest_result->cost_from_start;
 
 		//Scrub back to the max path length to store
 		while (dest_result->prev && dest_result->cell_distance_from_start > maxLen) {
 			dest_result = dest_result->prev;
 		}
 
-		resultPath.Command[dest_result->cell_distance_from_start] = END;
-		resultPath.Length = dest_result->cell_distance_from_start;
+		resultPath->Command[dest_result->cell_distance_from_start] = END;
+		resultPath->Length = dest_result->cell_distance_from_start;
 
 		for (; dest_result->prev != nullptr; dest_result = dest_result->prev) {
 			const AStarCell& prev_node = *dest_result->prev;
-			resultPath.Command[prev_node.cell_distance_from_start] = CELL_FACING(prev_node.position, dest_result->position);
+			resultPath->Command[prev_node.cell_distance_from_start] = CELL_FACING(prev_node.position, dest_result->position);
 		}
 
-		Optimize_Moves(&resultPath, threshhold);
+		Optimize_Moves(resultPath, threshhold);
 		if (Debug_Flag || Debug_Find_Path)
 		{
-			Debug_Draw_Path(&resultPath);
+			Debug_Draw_Path(resultPath);
 		}
 
-		return true;
+		return total_path_length;
 	}
 
-	return false;
+	return 0;
 }
 
 /***********************************************************************************************
@@ -727,7 +734,7 @@ PathType * FootClass::Find_Path(CELL dest, FacingType * final_moves, int maxlen,
 		bool result = false;
 		do
 		{
-			result = Find_Path_AStar(path, source, dest, maxlen, threshhold, threat);
+			result = Find_Path_AStar(&path, source, dest, maxlen, threshhold, threat);
 
 			if (!result && asThreat != -1) {
 				switch (++threat_stage) {
@@ -1312,7 +1319,7 @@ bool FootClass::Follow_Edge(CELL start, CELL target, PathType * path, FacingType
  *   06/01/1992  JLB : Optimized and commented.                                                *
  *=============================================================================================*/
 #define	EMPTY		(FacingType)-2
-int FootClass::Optimize_Moves(PathType * path, MoveType threshhold)
+int FootClass::Optimize_Moves(PathType * path, MoveType threshhold) const
 //int Optimize_Moves(PathType *path, int (*callback)(CELL, FacingType), int threshold)
 {
 	/*
@@ -1540,7 +1547,7 @@ CELL FootClass::Safety_Point(CELL src, CELL dst, int start, int max)
 
 
 
-int FootClass::Passable_Cell(CELL cell, FacingType face, int threat, MoveType threshhold)
+int FootClass::Passable_Cell(CELL cell, FacingType face, int threat, MoveType threshhold) const
 {
 	MoveType move = Can_Enter_Cell(cell, face);
 
@@ -1569,7 +1576,7 @@ int FootClass::Passable_Cell(CELL cell, FacingType face, int threat, MoveType th
 	return(_value[move]);
 }
 
-void FootClass::Debug_Draw_Path(PathType* path)
+void FootClass::Debug_Draw_Path(PathType* path) const
 {
 	if (!path) return;
 

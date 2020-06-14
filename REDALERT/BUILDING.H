@@ -356,9 +356,10 @@ class BuildingClass : public TechnoClass
 
 		virtual unsigned Spied_By() const;
 
-		bool Can_Have_Rally_Point() const;
+		bool Can_Have_Rally_Point(void) const;
 		virtual void Set_Unselected_By_Player(HouseClass* player = nullptr) override;
 
+		bool Rally_Unit(FootClass& unit);
 	private:
 		void Drop_Debris(TARGET source = TARGET_NONE);
 		void Player_Set_Rally_Point(TARGET target);

@@ -1090,7 +1090,8 @@ void On_Achievement_Event(const HouseClass* player_ptr, const char *achievement_
 
 bool CFE_Patch_Is_Wall(const ObjectTypeClass& object);
 bool CFE_Patch_Can_Have_Rally_Point(const ObjectClass& object);
-
-void Initialise_CFE_Patch_Config();
+bool CFE_Patch_Should_Extend_Walls(void);
+bool CFE_Patch_Unit_Should_Rally(const FootClass& object);
+void Initialise_CFE_Patch_Config(void);
 
 #endif
