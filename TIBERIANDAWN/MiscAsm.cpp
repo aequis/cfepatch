@@ -1302,9 +1302,6 @@ extern "C" long __cdecl Swap_Long(long number)
 
 
 /*
-
-
-
 ;***************************************************************************
 ;* strtrim -- Remove the trailing white space from a string.               *
 ;*                                                                         *
@@ -1328,7 +1325,7 @@ extern "C" long __cdecl Swap_Long(long number)
 
 	ARG	buffer:DWORD		; Pointer to string to modify.
 */
-void __cdecl strtrim(char *buffer)
+void __cdecl strtrim(char* buffer)
 {
 	__asm {		  
 			cmp	[buffer],0

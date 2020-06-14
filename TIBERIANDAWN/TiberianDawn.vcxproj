@@ -120,7 +120,11 @@
     <ClInclude Include="AIRCRAFT.H" />
     <ClInclude Include="ANIM.H" />
     <ClInclude Include="AUDIO.H" />
+    <ClInclude Include="B64PIPE.H" />
+    <ClInclude Include="B64STRAW.H" />
     <ClInclude Include="BASE.H" />
+    <ClInclude Include="BASE64.H" />
+    <ClInclude Include="BUFF.H" />
     <ClInclude Include="BUILDING.H" />
     <ClInclude Include="BULLET.H" />
     <ClInclude Include="CARGO.H" />
@@ -129,6 +133,7 @@
     <ClInclude Include="CDFILE.H" />
     <ClInclude Include="CELL.H" />
     <ClInclude Include="CFEDEBUG.H" />
+    <ClInclude Include="RANGEWRAPPER.H" />
     <ClInclude Include="CHECKBOX.H" />
     <ClInclude Include="CHEKLIST.H" />
     <ClInclude Include="COLRLIST.H" />
@@ -140,6 +145,7 @@
     <ClInclude Include="CONNMGR.H" />
     <ClInclude Include="CONQUER.H" />
     <ClInclude Include="CONTROL.H" />
+    <ClInclude Include="CRC.H" />
     <ClInclude Include="CREDITS.H" />
     <ClInclude Include="CREW.H" />
     <ClInclude Include="DDE.H" />
@@ -159,6 +165,7 @@
     <ClInclude Include="FACING.H" />
     <ClInclude Include="FACTORY.H" />
     <ClInclude Include="FIELD.H" />
+    <ClInclude Include="FIXED.H" />
     <ClInclude Include="FLASHER.H" />
     <ClInclude Include="FLY.H" />
     <ClInclude Include="FOOT.H" />
@@ -174,6 +181,8 @@
     <ClInclude Include="HELP.H" />
     <ClInclude Include="HOUSE.H" />
     <ClInclude Include="INFANTRY.H" />
+    <ClInclude Include="INI.H" />
+    <ClInclude Include="INT.H" />
     <ClInclude Include="INTRO.H" />
     <ClInclude Include="IPX.H" />
     <ClInclude Include="IPX95.H" />
@@ -186,6 +195,7 @@
     <ClInclude Include="LED.H" />
     <ClInclude Include="LINK.H" />
     <ClInclude Include="LIST.H" />
+    <ClInclude Include="LISTNODE.H" />
     <ClInclude Include="LOADDLG.H" />
     <ClInclude Include="LOGIC.H" />
     <ClInclude Include="MAP.H" />
@@ -196,6 +206,7 @@
     <ClInclude Include="MIXFILE.H" />
     <ClInclude Include="MONOC.H" />
     <ClInclude Include="MOUSE.H" />
+    <ClInclude Include="MP.H" />
     <ClInclude Include="MSGBOX.H" />
     <ClInclude Include="MSGLIST.H" />
     <ClInclude Include="NOSEQCON.H" />
@@ -206,21 +217,28 @@
     <ClInclude Include="OVERLAY.H" />
     <ClInclude Include="PACKET.H" />
     <ClInclude Include="PHONE.H" />
+    <ClInclude Include="PIPE.H" />
+    <ClInclude Include="PK.H" />
     <ClInclude Include="POWER.H" />
     <ClInclude Include="QUEUE.H" />
     <ClInclude Include="RADAR.H" />
     <ClInclude Include="RADIO.H" />
+    <ClInclude Include="RANDOM.H" />
     <ClInclude Include="RAWFILE.H" />
+    <ClInclude Include="READLINE.H" />
     <ClInclude Include="REAL.H" />
     <ClInclude Include="REGION.H" />
     <ClInclude Include="Resource\resource.h" />
+    <ClInclude Include="RNDSTRAW.H" />
     <ClInclude Include="RULES.H" />
     <ClInclude Include="SAVEDLG.H" />
     <ClInclude Include="SCORE.H" />
     <ClInclude Include="SCREEN.H" />
     <ClInclude Include="SCROLL.H" />
+    <ClInclude Include="SEARCH.H" />
     <ClInclude Include="SEQCONN.H" />
     <ClInclude Include="SESSION.H" />
+    <ClInclude Include="SHA.H" />
     <ClInclude Include="SHAPEBTN.H" />
     <ClInclude Include="SIDEBAR.H" />
     <ClInclude Include="SIDEBARGlyphx.H" />
@@ -229,6 +247,7 @@
     <ClInclude Include="SOUNDDLG.H" />
     <ClInclude Include="SPECIAL.H" />
     <ClInclude Include="STAGE.H" />
+    <ClInclude Include="STRAW.H" />
     <ClInclude Include="SUPER.H" />
     <ClInclude Include="TAB.H" />
     <ClInclude Include="TARCOM.H" />
@@ -300,6 +319,8 @@
     <ClInclude Include="win32lib\_FILE.H" />
     <ClInclude Include="WWALLOC.H" />
     <ClInclude Include="WWFILE.H" />
+    <ClInclude Include="XPIPE.H" />
+    <ClInclude Include="XSTRAW.H" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AADATA.CPP" />
@@ -311,9 +332,13 @@
     </ClCompile>
     <ClCompile Include="ANIM.CPP" />
     <ClCompile Include="AUDIO.CPP" />
+    <ClCompile Include="B64PIPE.CPP" />
+    <ClCompile Include="B64STRAW.CPP" />
     <ClCompile Include="BASE.CPP" />
+    <ClCompile Include="BASE64.CPP" />
     <ClCompile Include="BBDATA.CPP" />
     <ClCompile Include="BDATA.CPP" />
+    <ClCompile Include="BUFF.CPP" />
     <ClCompile Include="BUILDING.CPP" />
     <ClCompile Include="BULLET.CPP" />
     <ClCompile Include="CARGO.CPP" />
@@ -336,6 +361,7 @@
     <ClCompile Include="CONST.CPP" />
     <ClCompile Include="CONTROL.CPP" />
     <ClCompile Include="COORD.CPP" />
+    <ClCompile Include="CRC.CPP" />
     <ClCompile Include="CREDITS.CPP" />
     <ClCompile Include="CREW.CPP" />
     <ClCompile Include="DDE.CPP" />
@@ -357,6 +383,7 @@
     <ClCompile Include="FACTORY.CPP" />
     <ClCompile Include="FIELD.CPP" />
     <ClCompile Include="FINDPATH.CPP" />
+    <ClCompile Include="FIXED.CPP" />
     <ClCompile Include="FLASHER.CPP" />
     <ClCompile Include="FLY.CPP" />
     <ClCompile Include="FOOT.CPP" />
@@ -374,7 +401,9 @@
     <ClCompile Include="IDATA.CPP" />
     <ClCompile Include="INFANTRY.CPP" />
     <ClCompile Include="INI.CPP" />
+    <ClCompile Include="INIOLD.CPP" />
     <ClCompile Include="INIT.CPP" />
+    <ClCompile Include="INT.CPP" />
     <ClCompile Include="INTERNET.CPP" />
     <ClCompile Include="INTERPAL.CPP" />
     <ClCompile Include="INTRO.CPP" />
@@ -406,6 +435,7 @@
     <ClCompile Include="MIXFILE.CPP" />
     <ClCompile Include="MONOC.CPP" />
     <ClCompile Include="MOUSE.CPP" />
+    <ClCompile Include="MP.CPP" />
     <ClCompile Include="MPLAYER.CPP" />
     <ClCompile Include="MSGBOX.CPP" />
     <ClCompile Include="MSGLIST.CPP" />
@@ -419,14 +449,19 @@
     <ClCompile Include="OPTIONS.CPP" />
     <ClCompile Include="OVERLAY.CPP" />
     <ClCompile Include="PACKET.CPP" />
+    <ClCompile Include="PIPE.CPP" />
+    <ClCompile Include="PK.CPP" />
     <ClCompile Include="POWER.CPP" />
     <ClCompile Include="PROFILE.CPP" />
     <ClCompile Include="QUEUE.CPP" />
     <ClCompile Include="RADAR.CPP" />
     <ClCompile Include="RADIO.CPP" />
     <ClCompile Include="RAND.CPP" />
+    <ClCompile Include="RANDOM.CPP" />
     <ClCompile Include="RAWFILE.CPP" />
+    <ClCompile Include="READLINE.CPP" />
     <ClCompile Include="REINF.CPP" />
+    <ClCompile Include="RNDSTRAW.CPP" />
     <ClCompile Include="RULES.CPP" />
     <ClCompile Include="SAVELOAD.CPP" />
     <ClCompile Include="SCENARIO.CPP" />
@@ -434,6 +469,7 @@
     <ClCompile Include="SCROLL.CPP" />
     <ClCompile Include="SDATA.CPP" />
     <ClCompile Include="SEQCONN.CPP" />
+    <ClCompile Include="SHA.CPP" />
     <ClCompile Include="Shape.cpp" />
     <ClCompile Include="SHAPEBTN.CPP" />
     <ClCompile Include="SIDEBAR.CPP" />
@@ -444,6 +480,7 @@
     <ClCompile Include="SPECIAL.CPP" />
     <ClCompile Include="STARTUP.CPP" />
     <ClCompile Include="STATS.CPP" />
+    <ClCompile Include="STRAW.CPP" />
     <ClCompile Include="SUPER.CPP" />
     <ClCompile Include="TAB.CPP" />
     <ClCompile Include="TARCOM.CPP" />
@@ -499,6 +536,8 @@
     <ClCompile Include="win32lib\WSA.CPP" />
     <ClCompile Include="win32lib\_DIPTABL.CPP" />
     <ClCompile Include="WINSTUB.CPP" />
+    <ClCompile Include="XPIPE.CPP" />
+    <ClCompile Include="XSTRAW.CPP" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource\TiberianDawn.rc" />

@@ -628,6 +628,27 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="CFEDEBUG.H" />
+    <ClInclude Include="INI.H" />
+    <ClInclude Include="LISTNODE.H" />
+    <ClInclude Include="PIPE.H" />
+    <ClInclude Include="PK.H" />
+    <ClInclude Include="FIXED.H" />
+    <ClInclude Include="CRC.H" />
+    <ClInclude Include="STRAW.H" />
+    <ClInclude Include="INT.H" />
+    <ClInclude Include="MP.H" />
+    <ClInclude Include="RNDSTRAW.H" />
+    <ClInclude Include="RANDOM.H" />
+    <ClInclude Include="SHA.H" />
+    <ClInclude Include="SEARCH.H" />
+    <ClInclude Include="READLINE.H" />
+    <ClInclude Include="XPIPE.H" />
+    <ClInclude Include="XSTRAW.H" />
+    <ClInclude Include="B64PIPE.H" />
+    <ClInclude Include="B64STRAW.H" />
+    <ClInclude Include="BASE64.H" />
+    <ClInclude Include="BUFF.H" />
+    <ClInclude Include="RANGEWRAPPER.H" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AADATA.CPP">
@@ -823,9 +844,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="INFANTRY.CPP">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="INI.CPP">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="INIT.CPP">
@@ -1209,6 +1227,25 @@
     </ClCompile>
     <ClCompile Include="CFEPATCHQUERY.cpp" />
     <ClCompile Include="CFEUTIL.CPP" />
+    <ClCompile Include="INI.CPP" />
+    <ClCompile Include="PIPE.CPP" />
+    <ClCompile Include="PK.CPP" />
+    <ClCompile Include="FIXED.CPP" />
+    <ClCompile Include="CRC.CPP" />
+    <ClCompile Include="STRAW.CPP" />
+    <ClCompile Include="INT.CPP" />
+    <ClCompile Include="MP.CPP" />
+    <ClCompile Include="RNDSTRAW.CPP" />
+    <ClCompile Include="RANDOM.CPP" />
+    <ClCompile Include="SHA.CPP" />
+    <ClCompile Include="READLINE.CPP" />
+    <ClCompile Include="XPIPE.CPP" />
+    <ClCompile Include="XSTRAW.CPP" />
+    <ClCompile Include="B64PIPE.CPP" />
+    <ClCompile Include="B64STRAW.CPP" />
+    <ClCompile Include="BASE64.CPP" />
+    <ClCompile Include="BUFF.CPP" />
+    <ClCompile Include="INIOLD.CPP" />
   </ItemGroup>
   <ItemGroup>
     <MASM Include="win32lib\FACINGFF.ASM">
