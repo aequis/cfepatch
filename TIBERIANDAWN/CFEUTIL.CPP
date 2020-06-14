@@ -119,12 +119,10 @@ void Initialise_CFE_Patch_Config()
 			{
 				//Write the modified ini to a temp file
 				const std::string write_path = ini_path + ".temp";
-				if (FILE* target_file = fopen(write_path.c_str(), "w"))
+				CCFileClass write_file(write_path.c_str());
+				if (write_file.Is_Available() && write_file.Open(WRITE))
 				{
-					fclose(target_file);
-
 					//If it was written successfully, overwrite the existing config
-					CCFileClass write_file(write_path.c_str());
 					if (user_ini.Save(write_file))
 					{
 						write_file.Close();
