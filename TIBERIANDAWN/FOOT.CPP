@@ -2110,7 +2110,7 @@ BuildingClass* FootClass::Find_Docking_Bay(StructType b, bool friendly) const
 				**	last qualifying building (as rated by distance), then record
 				**	this building and keep scanning.
 				*/
-				const int distance = is_aircraft ? Distance(building) :  Find_Path_AStar(nullptr, Coord_Cell(Center_Coord()), building->Nearby_Location(), 1, MOVE_TEMP, -1);
+				const int distance = is_aircraft ? Distance(building) :  Find_Path_AStar(nullptr, Coord_Cell(Coord), building->Nearby_Location(), 1, MOVE_TEMP, -1);
 				if (distance && (distance < bestval || building->IsLeader)) {
 					best = building;
 					bestval = distance;
