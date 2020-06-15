@@ -208,6 +208,15 @@ class BuildingClass : public TechnoClass
 		*/
 		CDTimerClass<FrameTimerClass> PlacementDelay;
 
+		//cfehunter 7th June 2020. Took a lot of digging into the allocation
+		//but it looks like memory is initialised to zeros when allocated from the object pools.
+		//So even though this CELL doesn't exist in older saves, it should be zero initialised.
+		//NOTE: /!\ Stole 2 bytes from the save game padding /!\/
+		TARGET RallyPoint;
+
+		TARGET Target_For_Rally_Point(const SpeedType speed = SPEED_TRACK) const;
+
+
 		/*---------------------------------------------------------------------
 		**	Constructors, Destructors, and overloaded operators.
 		*/
@@ -347,13 +356,20 @@ class BuildingClass : public TechnoClass
 
 		virtual unsigned Spied_By() const;
 
+		bool Can_Have_Rally_Point() const;
+		virtual void Set_Unselected_By_Player(HouseClass* player = nullptr) override;
+
 	private:
 		void Drop_Debris(TARGET source = TARGET_NONE);
+		void Player_Set_Rally_Point(TARGET target);
+
+		bool Unlimbo_Wall(COORDINATE coord);
+		bool Create_Overlay_At(const OverlayTypeClass& oclass, const CELL cell);
 
 		/*
 		** Some additional padding in case we need to add data to the class and maintain backwards compatibility for save/load
 		*/
-		unsigned char SaveLoadPadding[32];
+		unsigned char SaveLoadPadding[30];
 
 		static COORDINATE const CenterOffset[BSIZE_COUNT];
 };

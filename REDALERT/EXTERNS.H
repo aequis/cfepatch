@@ -91,6 +91,20 @@ extern void const *LightningShapes;
 
 extern int NewINIFormat;
 
+struct CFEPatchConfig
+{
+	bool EnableASPathing = false;
+	bool EnableOOMRepair = false;
+	bool EnableRallyPoints = false;
+	bool EnableHarvyQueueJump = false;
+	bool EnableInstantCapture = false;
+
+	int  HarvyQueueJumpCutoff = 3;
+	int  OreGrowthScale = 1;
+	int  WallBuildLength = 5;
+};
+
+extern CFEPatchConfig ActiveCFEPatchConfig;
 
 #ifdef FIXIT_ANTS
 extern bool AntsEnabled;
@@ -394,6 +408,7 @@ extern unsigned char const					Pixel2Lepton[24];
 extern COORDINATE const 					StoppingCoordAbs[5];
 extern CELL const 							AdjacentCell[FACING_COUNT];
 extern COORDINATE const 					AdjacentCoord[FACING_COUNT];
+extern const FacingType						FacingCardinals[4];
 extern unsigned char const					RemapCiv2[];
 extern unsigned char const					RemapCiv4[];
 extern unsigned char const					RemapCiv5[];

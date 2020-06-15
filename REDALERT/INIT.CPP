@@ -172,7 +172,6 @@ static void Load_Prolog_Page(void)
 	Show_Mouse();
 }
 
-
 /***********************************************************************************************
  * Init_Game -- Main game initialization routine.                                              *
  *                                                                                             *
@@ -433,6 +432,8 @@ bool Init_Game(int , char * [])
 	*/
 	ChronalVortex.Stop();
 	ChronalVortex.Setup_Remap_Tables(Scen.Theater);
+
+	Initialise_CFE_Patch_Config();
 
 	return(true);
 }
