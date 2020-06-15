@@ -363,7 +363,10 @@ void LogicClass::AI(void)
 	/*
 	**	Map related logic is performed.
 	*/
-	Map.Logic();
+	for (int i = 0; i < ActiveCFEPatchConfig.OreGrowthScale; ++i)
+	{
+		Map.Logic();
+	}
 
 	/*
 	**	Factory processing is performed.

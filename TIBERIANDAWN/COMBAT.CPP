@@ -136,6 +136,8 @@ void Explosion_Damage(COORDINATE coord, unsigned strength, TechnoClass * source,
 	int				index;
 	int				count;		// Number of vehicle IDs in list.
 
+	//#CFE TODO: if DisableFriendlyFire && source->House == target->House;
+
 	if (!strength || Special.IsInert || warhead == WARHEAD_NONE) return;
 
 	WarheadTypeClass const * whead = &Warheads[warhead];

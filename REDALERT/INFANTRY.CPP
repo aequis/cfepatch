@@ -642,9 +642,9 @@ void InfantryClass::Per_Cell_Process(PCPType why)
 							iscapturable = ((BuildingClass *)tech)->Class->IsCaptureable;
 						}
 #ifdef FIXIT_ENGINEER	//	checked - ajw 9/28/98
-						if (tech->Health_Ratio() <= EngineerCaptureLevel && iscapturable) {
+						if ((ActiveCFEPatchConfig.EnableInstantCapture || tech->Health_Ratio() <= EngineerCaptureLevel) && iscapturable) {
 #else
-						if (tech->Health_Ratio() <= Rule.ConditionRed && iscapturable) {
+						if ((ActiveCFEPatchConfig.EnableInstantCapture || tech->Health_Ratio() <= Rule.ConditionRed) && iscapturable) {
 #endif
 							if (tech->Trigger.Is_Valid()) {
 								tech->Trigger->Spring(TEVENT_PLAYER_ENTERED, this);
@@ -2917,9 +2917,9 @@ ActionType InfantryClass::What_Action(ObjectClass const * object) const
 
 				if (bldg->Class->IsCaptureable) {
 #ifdef FIXIT_ENGINEER	//	checked - ajw 9/28/98
-					if (bldg->Health_Ratio() <= EngineerCaptureLevel) {
+					if (ActiveCFEPatchConfig.EnableInstantCapture || bldg->Health_Ratio() <= EngineerCaptureLevel) {
 #else
-					if (bldg->Health_Ratio() <= Rule.ConditionRed) {
+					if (ActiveCFEPatchConfig.EnableInstantCapture || bldg->Health_Ratio() <= Rule.ConditionRed) {
 #endif
 						return(ACTION_CAPTURE);
 					}
