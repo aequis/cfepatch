@@ -554,6 +554,7 @@
     <ClInclude Include="RADIO.H" />
     <ClInclude Include="RAMFILE.H" />
     <ClInclude Include="RANDOM.H" />
+	<ClInclude Include="RANGEWRAPPER.H" />
     <ClInclude Include="RAWFILE.H" />
     <ClInclude Include="RAWOLAPI.H" />
     <ClInclude Include="READLINE.H" />

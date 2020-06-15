@@ -102,6 +102,7 @@ struct CFEPatchConfig
 	int  HarvyQueueJumpCutoff = 3;
 	int  OreGrowthScale = 1;
 	int  WallBuildLength = 5;
+	int  BuildingGapOffset = 0;
 };
 
 extern CFEPatchConfig ActiveCFEPatchConfig;

@@ -1379,6 +1379,9 @@
     <ClInclude Include="RANDOM.H">
       <Filter>Source Files</Filter>
     </ClInclude>
+	<ClCompile Include="RANGEWRAPPER.H">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClInclude Include="RAWFILE.H">
       <Filter>Source Files</Filter>
     </ClInclude>

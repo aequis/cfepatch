@@ -1285,3 +1285,26 @@ void INIClass::Strip_Comments(char * buffer)
 		}
 	}
 }
+
+const char* INIClass::INISectionIterator::operator*()
+{
+	return Base::operator->()->Section;
+}
+
+std::pair<const char*, const char*> INIClass::INIEntryIterator::operator*()
+{
+	const INIEntry* const entry = NodeIterator<const INIEntry>::operator->();
+	return { entry->Entry, entry->Value };
+}
+
+INIClass::INIEntryIterator INIClass::section_begin(const char* section) const
+{
+	const INISection* s = Find_Section(section);
+	return s ? s->EntryList.begin() : INIEntryIterator();
+}
+
+INIClass::INIEntryIterator INIClass::section_end(const char* section) const
+{
+	const INISection* s = Find_Section(section);
+	return s ? s->EntryList.end() : INIEntryIterator();
+}
