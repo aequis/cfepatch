@@ -59,6 +59,8 @@ bool Debug_Modem_Dump = false;		// true = print the Modem Stuff
 bool Debug_Print_Events = false;		// true = print event & packet processing
 bool Debug_Force_Crash = false;
 
+CFEPatchConfig ActiveCFEPatchConfig;
+
 TFixedIHeapClass<AircraftClass>		Aircraft;
 TFixedIHeapClass<AnimClass>			Anims;
 TFixedIHeapClass<BuildingClass>		Buildings;

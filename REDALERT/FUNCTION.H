@@ -553,6 +553,9 @@ void CC_Draw_Shape(const ObjectClass *object, const char *shape_file_name, void 
 // Added for pip draw intercept - SKY
 void CC_Draw_Pip(const ObjectClass *object, void const * shapefile, int shapenum, int x, int y, WindowNumberType window, ShapeFlags_Type flags, void const * fadingdata = 0, void const * ghostdata = 0, DirType rotation = DIR_N);
 
+// Added for line draw intercept (ex. Obelisk laser) - SKY
+void CC_Draw_Line(int x, int y, int x1, int y1, unsigned char color, int frame, WindowNumberType window);
+
 void Go_Editor(bool flag);
 //long MixFileHandler(VQAHandle * vqa, long action, void * buffer, long nbytes);
 char *CC_Get_Shape_Filename(void const * shapeptr );
@@ -1084,5 +1087,11 @@ void Enable_Uncompressed_Shapes (void);
 ** Achievement event. ST - 11/11/2019 11:39AM
 */
 void On_Achievement_Event(const HouseClass* player_ptr, const char *achievement_type, const char *achievement_reason);
+
+bool CFE_Patch_Is_Wall(const ObjectTypeClass& object);
+bool CFE_Patch_Can_Have_Rally_Point(const ObjectClass& object);
+bool CFE_Patch_Should_Extend_Walls(void);
+bool CFE_Patch_Unit_Should_Rally(const FootClass& object);
+void Initialise_CFE_Patch_Config(void);
 
 #endif

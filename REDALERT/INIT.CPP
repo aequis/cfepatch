@@ -172,7 +172,6 @@ static void Load_Prolog_Page(void)
 	Show_Mouse();
 }
 
-
 /***********************************************************************************************
  * Init_Game -- Main game initialization routine.                                              *
  *                                                                                             *
@@ -427,6 +426,19 @@ bool Init_Game(int , char * [])
 	** dialogs are invoked.  (GameSpeed must be synchronized between systems.)
 	*/
 	Options.Load_Settings();
+
+	Initialise_CFE_Patch_Config();
+
+	if (ActiveCFEPatchConfig.BuildingGapOffset) {
+		for (int bindex = 0; bindex < BuildingTypes.Count(); ++bindex) {
+			BuildingTypeClass *building = BuildingTypes.Ptr(bindex);
+
+			building->Adjacent += ActiveCFEPatchConfig.BuildingGapOffset;
+			if (building->Adjacent < 0) {
+				building->Adjacent = 0;
+			}
+		}
+	}
 
 	/*
 	** Initialise the color lookup tables for the chronal vortex

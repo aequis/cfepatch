@@ -4406,7 +4406,10 @@ void HouseClass::Sell_Wall(CELL cell)
 						Sound_Effect(VOC_CASHTURN);
 					}
 
-					Refund_Money(btype->Raw_Cost() * Rule.RefundPercent);
+					// Disable wall refunds if the player has a wall build length > 1
+					if (!IsHuman || ActiveCFEPatchConfig.WallBuildLength <= 1)
+						Refund_Money(btype->Raw_Cost() * Rule.RefundPercent);
+
 					Map[cell].Overlay = OVERLAY_NONE;
 					Map[cell].OverlayData = 0;
 					Map[cell].Owner = HOUSE_NONE;

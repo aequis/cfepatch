@@ -843,3 +843,5 @@ char const Keys[] =
 "1=AigKVje8mROcR8QixnxUEF5b29Curkq01DNDWCdOG99XBqH79OaCiTCB\n"
 #endif
 "\n";
+
+const FacingType  FacingCardinals[4]{ FACING_N, FACING_E, FACING_S, FACING_W };

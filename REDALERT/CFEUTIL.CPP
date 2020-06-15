@@ -16,7 +16,7 @@ std::string Get_User_Mod_Dir()
 	if (SUCCEEDED(result))
 	{
 		dirPath = documentsPath;
-		dirPath += "\\CnCRemastered\\Mods\\Tiberian_Dawn";
+		dirPath += "\\CnCRemastered\\Mods\\Red_Alert";
 	}
 	return dirPath;
 }
@@ -46,20 +46,17 @@ void Populate_CFE_Patch_Config_From_INI(const INIClass& ini)
 
 	//cfehunter 12/06/2020 It's really starting to get to the point where I should make feature flags
 	//Features
-	GetSetting(ActiveCFEPatchConfig.EnableRallyPoints         , "FEATURES", "RALLY_POINTS");
-	GetSetting(ActiveCFEPatchConfig.EnableASPathing           , "FEATURES", "ASTAR_PATHING");
-	GetSetting(ActiveCFEPatchConfig.EnableOOMRepair           , "FEATURES", "OOM_REPAIR");
-	GetSetting(ActiveCFEPatchConfig.EnableHarvyQueueJump      , "FEATURES", "HARVY_QUEUE_JUMP");
-	GetSetting(ActiveCFEPatchConfig.EnableRepairQueue         , "FEATURES", "REPAIR_QUEUE");
-	GetSetting(ActiveCFEPatchConfig.EnableHarvySelfRepair     , "FEATURES", "HARVY_SELF_REPAIR");
-	GetSetting(ActiveCFEPatchConfig.DisableCommandoAirstrikes , "FEATURES", "DISABLE_COMMANDO_AIRSTRIKES");
+	GetSetting(ActiveCFEPatchConfig.EnableASPathing, "FEATURES", "ASTAR_PATHING");
+	GetSetting(ActiveCFEPatchConfig.EnableOOMRepair, "FEATURES", "OOM_REPAIR");
+	GetSetting(ActiveCFEPatchConfig.EnableRallyPoints, "FEATURES", "RALLY_POINTS");
+	GetSetting(ActiveCFEPatchConfig.EnableHarvyQueueJump, "FEATURES", "HARVY_QUEUE_JUMP");
+	GetSetting(ActiveCFEPatchConfig.EnableInstantCapture, "FEATURES", "INSTANT_CAPTURE");
 
 	//Settings
-	GetSetting(ActiveCFEPatchConfig.BuildingGap               , "SETTINGS", "BUILDING_GAP");
-	GetSetting(ActiveCFEPatchConfig.HarvyQueueJumpCutoff      , "SETTINGS", "QUEUE_JUMP_CUTOFF");
-	GetSetting(ActiveCFEPatchConfig.TibGrowthScale            , "SETTINGS", "TIB_GROWTH_SCALE");
-	GetSetting(ActiveCFEPatchConfig.WallBuildLength           , "SETTINGS", "WALL_BUILD_LENGTH");
-	GetSetting(ActiveCFEPatchConfig.WallsAlwaysHaveFullCost   , "SETTINGS", "WALLS_HAVE_FULL_COST");
+	GetSetting(ActiveCFEPatchConfig.HarvyQueueJumpCutoff, "SETTINGS", "QUEUE_JUMP_CUTOFF");
+	GetSetting(ActiveCFEPatchConfig.OreGrowthScale, "SETTINGS", "ORE_GROWTH_SCALE");
+	GetSetting(ActiveCFEPatchConfig.WallBuildLength, "SETTINGS", "WALL_BUILD_LENGTH");
+	GetSetting(ActiveCFEPatchConfig.BuildingGapOffset, "SETTINGS", "BUILDING_GAP_OFFSET");
 
 	//Clamp Wall Length between 1 (build at all) and 10 (buffer limits)
 	ActiveCFEPatchConfig.WallBuildLength = (std::max)(1, (std::min)(ActiveCFEPatchConfig.WallBuildLength, 10));
@@ -93,15 +90,15 @@ bool Reconcile_Config_With_Default(const INIClass& default, INIClass& config)
 //cfehunter 12/06/2020 I really miss std::filesystem
 void Initialise_CFE_Patch_Config()
 {
-	static constexpr const char* DefaultININame = "DEFAULT.CFEPATCH.INI";
+	static constexpr const char* DefaultININame = "DEFAULT.CFEPATCH_RA.INI";
 
 	const std::string ini_dir = Get_User_Mod_Dir() + "\\CFEPatch";
-	const std::string ini_path = ini_dir + "\\CFEPATCH.INI";
+	const std::string ini_path = ini_dir + "\\CFEPATCH_RA.INI";
 
 	INIClass default_ini;
 	Load_INI_File(default_ini, DefaultININame);
 
-	
+
 
 	//Initialise from the default config
 	Populate_CFE_Patch_Config_From_INI(default_ini);
@@ -120,17 +117,16 @@ void Initialise_CFE_Patch_Config()
 			{
 				//Write the modified ini to a temp file
 				const std::string write_path = ini_path + ".temp";
-				CCFileClass write_file(write_path.c_str());
-				if (write_file.Is_Available() && write_file.Open(WRITE))
+				if (FILE* target_file = fopen(write_path.c_str(), "w"))
 				{
+					fclose(target_file);
+
 					//If it was written successfully, overwrite the existing config
+					CCFileClass write_file(write_path.c_str());
 					if (user_ini.Save(write_file))
 					{
 						write_file.Close();
 						CopyFileA(write_path.c_str(), ini_path.c_str(), FALSE);
-
-						//Delete the old file
-						DeleteFileA(write_path.c_str());
 					}
 				}
 			}
@@ -150,5 +146,4 @@ void Initialise_CFE_Patch_Config()
 			}
 		}
 	}
-
 }
