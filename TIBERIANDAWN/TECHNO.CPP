@@ -2475,7 +2475,7 @@ void TechnoClass::Player_Assign_Mission(MissionType mission, TARGET target, TARG
 	}
 
 	//Set target to self to set attack move
-	if (mission == MISSION_MOVE && ActiveCFEPatchConfig.EnableAttackMove && !Target_Legal(target))
+	if (mission == MISSION_MOVE && !Target_Legal(target) && ActiveCFEPatchConfig.EnableAttackMove && DLL_Export_Get_Input_Key_State(KN_LSHIFT))
 	{
 		target = As_Target();
 	}

@@ -603,6 +603,7 @@ CCDebugString ("C&C95 - Primary building packet received\n");
 
 						if (Data.MegaMission.Mission == MISSION_MOVE && CFE_Patch_Should_Attack_Move(Data.MegaMission.Target, Data.MegaMission.Whom))
 						{
+							object = nullptr;
 							Data.MegaMission.Target = TARGET_NONE;
 							((FootClass*)techno)->Set_Attack_Move(true);
 						}
