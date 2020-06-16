@@ -562,12 +562,13 @@ int FootClass::Mission_Move(void)
 			if (!House->IsHuman) {
 				Target_Something_Nearby(THREAT_RANGE);
 			}
-			else if (IsAttackMoving && Target_Something_Nearby(THREAT_RANGE)) {
-				ArchiveTarget = NavCom;
-				NavCom = TARGET_NONE;
-				Status = ATTACKING;
-				return 1;
-			}
+		}
+		if (IsAttackMoving && Target_Something_Nearby(THREAT_AREA)) {
+			ArchiveTarget = NavCom;
+			NavCom = TARGET_NONE;
+			Status = ATTACKING;
+			Path[0] = FACING_NONE;
+			return 1;
 		}
 
 		break;
