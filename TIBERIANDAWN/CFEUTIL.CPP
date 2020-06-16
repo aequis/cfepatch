@@ -53,12 +53,14 @@ void Populate_CFE_Patch_Config_From_INI(const INIClass& ini)
 	GetSetting(ActiveCFEPatchConfig.EnableRepairQueue         , "FEATURES", "REPAIR_QUEUE");
 	GetSetting(ActiveCFEPatchConfig.EnableHarvySelfRepair     , "FEATURES", "HARVY_SELF_REPAIR");
 	GetSetting(ActiveCFEPatchConfig.DisableCommandoAirstrikes , "FEATURES", "DISABLE_COMMANDO_AIRSTRIKES");
-		
+	GetSetting(ActiveCFEPatchConfig.EnableAttackMove          , "FEATURES", "ATTACK_MOVE");
+
 	//Settings
 	GetSetting(ActiveCFEPatchConfig.BuildingGap               , "SETTINGS", "BUILDING_GAP");
 	GetSetting(ActiveCFEPatchConfig.HarvyQueueJumpCutoff      , "SETTINGS", "QUEUE_JUMP_CUTOFF");
 	GetSetting(ActiveCFEPatchConfig.TibGrowthScale            , "SETTINGS", "TIB_GROWTH_SCALE");
 	GetSetting(ActiveCFEPatchConfig.WallBuildLength           , "SETTINGS", "WALL_BUILD_LENGTH");
+	GetSetting(ActiveCFEPatchConfig.WallsAlwaysHaveFullCost   , "SETTINGS", "WALLS_HAVE_FULL_COST");
 
 	//Clamp Wall Length between 1 (build at all) and 10 (buffer limits)
 	ActiveCFEPatchConfig.WallBuildLength = (std::max)(1, (std::min)(ActiveCFEPatchConfig.WallBuildLength, 10));
@@ -119,16 +121,17 @@ void Initialise_CFE_Patch_Config()
 			{
 				//Write the modified ini to a temp file
 				const std::string write_path = ini_path + ".temp";
-				if (FILE* target_file = fopen(write_path.c_str(), "w"))
+				CCFileClass write_file(write_path.c_str());
+				if (write_file.Is_Available() && write_file.Open(WRITE))
 				{
-					fclose(target_file);
-
 					//If it was written successfully, overwrite the existing config
-					CCFileClass write_file(write_path.c_str());
 					if (user_ini.Save(write_file))
 					{
 						write_file.Close();
 						CopyFileA(write_path.c_str(), ini_path.c_str(), FALSE);
+
+						//Delete the old file
+						DeleteFileA(write_path.c_str());
 					}
 				}
 			}

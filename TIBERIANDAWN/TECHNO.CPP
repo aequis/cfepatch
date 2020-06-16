@@ -2473,6 +2473,12 @@ void TechnoClass::Player_Assign_Mission(MissionType mission, TARGET target, TARG
 			Response_Move();
 		}
 	}
+
+	//Set target to self to set attack move
+	if (mission == MISSION_MOVE && !Target_Legal(target) && ActiveCFEPatchConfig.EnableAttackMove && DLL_Export_Get_Input_Key_State(KN_LSHIFT))
+	{
+		target = As_Target();
+	}
 	Queue_Mission(As_Target(), mission, target, destination);
 }
 

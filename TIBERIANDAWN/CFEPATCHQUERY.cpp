@@ -59,7 +59,13 @@ bool CFE_Patch_Can_Have_Rally_Point(const ObjectClass& object)
 
 bool CFE_Patch_Should_Extend_Walls()
 {
+	//#CFE TODO: This isn't multiplayer safe
 	return ActiveCFEPatchConfig.WallBuildLength > 1 && !DLL_Export_Get_Input_Key_State(KN_LCTRL);
+}
+
+bool CFE_Patch_Should_Attack_Move(const TARGET whom, const TARGET target)
+{
+	return ActiveCFEPatchConfig.EnableAttackMove && whom == target;
 }
 
 bool CFE_Patch_Is_Cell_Friendly_To_House(const HousesType house, const CELL cell)
