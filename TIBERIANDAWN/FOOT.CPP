@@ -546,12 +546,44 @@ bool FootClass::Basic_Path(void)
  *=============================================================================================*/
 int FootClass::Mission_Move(void)
 {
-	if (!Target_Legal(NavCom) && !IsDriving && MissionQueue == MISSION_NONE) {
-		Enter_Idle_Mode();
+	enum {
+		MOVING,
+		ATTACKING
+	};
+
+	switch (Status)
+	{
+	case MOVING:
+		if (!Target_Legal(NavCom) && !IsDriving && MissionQueue == MISSION_NONE) {
+			Enter_Idle_Mode();
+		}
+
+		if (!Target_Legal(TarCom)) {
+			if (!House->IsHuman) {
+				Target_Something_Nearby(THREAT_RANGE);
+			}
+			else if (IsAttackMoving && Target_Something_Nearby(THREAT_RANGE)) {
+				ArchiveTarget = NavCom;
+				NavCom = TARGET_NONE;
+				Status = ATTACKING;
+				return 1;
+			}
+		}
+
+		break;
+	case ATTACKING:
+		if (Target_Legal(TarCom)) {
+			Approach_Target();
+		}
+		else {
+			NavCom = ArchiveTarget;
+			Status = MOVING;
+			return 1;
+		}
+		break;
 	}
-	if (!Target_Legal(TarCom) && !House->IsHuman) {
-		Target_Something_Nearby(THREAT_RANGE);
-	}
+
+	
 	return(TICKS_PER_SECOND+3);
 }
 
@@ -1073,6 +1105,11 @@ void FootClass::Assign_Mission(MissionType order)
 	if (What_Am_I() != RTTI_UNIT || *(UnitClass*)this != UNIT_GUNBOAT) {
 		Path[0] = FACING_NONE;
 	}
+
+	if (order != MISSION_MOVE) {
+		IsAttackMoving = false;
+	}
+
 	TechnoClass::Assign_Mission(order);
 }
 
@@ -1472,7 +1509,6 @@ bool FootClass::Restore_Mission(void)
 	}
 	return(false);
 }
-
 
 /***********************************************************************************************
  * FootClass::Receive_Message -- Movement related radio messages are handled here.             *

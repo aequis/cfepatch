@@ -85,11 +85,12 @@ struct CFEPatchConfig
 	bool EnableRepairQueue = false;
 	bool EnableHarvySelfRepair = false;
 	bool DisableCommandoAirstrikes = false;
+	bool WallsAlwaysHaveFullCost = true;
+	bool EnableAttackMove = false;
 	int  BuildingGap = 2;
 	int  HarvyQueueJumpCutoff = 3;
 	int  TibGrowthScale = 1;
 	int  WallBuildLength = 5;
-	bool WallsAlwaysHaveFullCost = true;
 };
 
 extern CFEPatchConfig ActiveCFEPatchConfig;

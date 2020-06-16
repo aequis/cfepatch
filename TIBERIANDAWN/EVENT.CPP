@@ -600,6 +600,12 @@ CCDebugString ("C&C95 - Primary building packet received\n");
 						if (((FootClass *)techno)->Team) {
 							((FootClass *)techno)->Team->Remove((FootClass *)techno);
 						}
+
+						if (Data.MegaMission.Mission == MISSION_MOVE && CFE_Patch_Should_Attack_Move(Data.MegaMission.Target, Data.MegaMission.Whom))
+						{
+							Data.MegaMission.Target = TARGET_NONE;
+							((FootClass*)techno)->Set_Attack_Move(true);
+						}
 						break;
 				}
 
