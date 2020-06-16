@@ -2514,7 +2514,7 @@ TARGET InfantryClass::Greatest_Threat(ThreatType threat) const
 		**	unless specifically in hunt mode.
 		*/
 		case WEAPON_RIFLE:
-			if (House->IsHuman && (Mission == MISSION_GUARD || Mission == MISSION_GUARD_AREA)) {
+			if (!ActiveCFEPatchConfig.EnableCommandoGuard && House->IsHuman && (Mission == MISSION_GUARD || Mission == MISSION_GUARD_AREA)) {
 				return(TARGET_NONE);
 			}
 			return(TechnoClass::Greatest_Threat(threat | THREAT_INFANTRY|THREAT_BUILDINGS));

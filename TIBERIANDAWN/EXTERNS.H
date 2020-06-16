@@ -87,6 +87,7 @@ struct CFEPatchConfig
 	bool DisableCommandoAirstrikes = false;
 	bool WallsAlwaysHaveFullCost = true;
 	bool EnableAttackMove = false;
+	bool EnableCommandoGuard = false;
 	int  BuildingGap = 2;
 	int  HarvyQueueJumpCutoff = 3;
 	int  TibGrowthScale = 1;
