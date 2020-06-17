@@ -451,7 +451,12 @@ RadioMessageType BuildingClass::Receive_Message(RadioClass * from, RadioMessageT
 			TechnoClass::Receive_Message(from, message, param);
 
 			//Rally the unit
-			Rally_Unit(static_cast<FootClass&>(*from));
+			if (Can_Have_Rally_Point())
+			{
+				if (!Rally_Unit(static_cast<FootClass&>(*from)))
+					return RADIO_RUN_AWAY;
+			}
+
 			return(RADIO_ROGER);
 
 		case RADIO_QUEUE:

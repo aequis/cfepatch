@@ -549,9 +549,9 @@ CELL FootClass::Find_Passable_Position_Near(const CELL target, const int maxRadi
 	const int targetX = Cell_X(target);
 	const int targetY = Cell_Y(target);
 
-	const auto validate_cell = [this, target, threat, threshhold](const CELL cell)
+	const auto validate_cell = [this, threat, threshhold](const CELL cell)
 	{
-		return Map.In_Radar(cell) && Passable_Cell(target, FACING_NONE, threat, threshhold);
+		return Map.In_Radar(cell) && Passable_Cell(cell, FACING_NONE, threat, threshhold);
 	};
 
 	for (int curDistance = 1; curDistance <= maxRadius; ++curDistance)
@@ -630,6 +630,10 @@ int FootClass::Find_Path_AStar(PathType* const resultPath, const CELL source, CE
 			//Failed to find a passable position at or near the target or nearby position is further away or equidistant to our current position, so just stay put
 			if (nearbyDest == 0 || ::Distance(dest, nearbyDest) >= distanceToDest) {
 				return 0;
+			}
+			else
+			{
+				dest = nearbyDest;
 			}
 		}
 		else {
