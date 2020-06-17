@@ -98,6 +98,8 @@ struct CFEPatchConfig
 	bool EnableRallyPoints = false;
 	bool EnableHarvyQueueJump = false;
 	bool EnableInstantCapture = false;
+	bool WallsAlwaysHaveFullCost = true;
+	bool EnableAttackMove = false;
 
 	int  HarvyQueueJumpCutoff = 3;
 	int  OreGrowthScale = 1;

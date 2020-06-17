@@ -492,14 +492,44 @@ int FootClass::Mission_Move(void)
 {
 	assert(IsActive);
 
-	if (!Target_Legal(NavCom) && !IsDriving && MissionQueue == MISSION_NONE) {
-		Enter_Idle_Mode();
-		return(1);
+	enum {
+		MOVING,
+		ATTACKING
+	};
+
+	switch (Status)
+	{
+		case MOVING:
+			if (!Target_Legal(NavCom) && !IsDriving && MissionQueue == MISSION_NONE) {
+				Enter_Idle_Mode();
+				return 1;
+			}
+
+			if (!Target_Legal(TarCom) && !House->IsPlayerControl && !House->IsHuman || (!Team.Is_Valid() || !Team->Class->IsSuicide)) {
+				Target_Something_Nearby(THREAT_RANGE);
+			}
+			
+			if (IsAttackMoving && Target_Something_Nearby(THREAT_AREA)) {
+				ArchiveTarget = NavCom;
+				NavCom = TARGET_NONE;
+				Status = ATTACKING;
+				Path[0] = FACING_NONE;
+				return 1;
+			}
+			break;
+
+		case ATTACKING:
+			if (Target_Legal(TarCom)) {
+				Approach_Target();
+			}
+			else {
+				NavCom = ArchiveTarget;
+				Status = MOVING;
+				return 1;
+			}
+			break;
 	}
-//	if (!Target_Legal(TarCom) && !House->IsPlayerControl && !House->IsHuman) {
-	if (!Target_Legal(TarCom) && !House->IsPlayerControl && !House->IsHuman && (!Team.Is_Valid() || !Team->Class->IsSuicide)) {
-		Target_Something_Nearby(THREAT_RANGE);
-	}
+
 	return(MissionControl[Mission].Normal_Delay() + Random_Pick(0, 2));
 }
 
@@ -2650,7 +2680,7 @@ BuildingClass* FootClass::Find_Docking_Bay(StructType b, bool friendly) const
 				**	last qualifying building (as rated by distance), then record
 				**	this building and keep scanning.
 				*/
-				const int distance = is_aircraft ? Distance(building) : Find_Path_AStar(nullptr, Coord_Cell(Center_Coord()), building->Nearby_Location(), 1, MOVE_TEMP, -1);
+				const int distance = is_aircraft ? Distance(building) : Find_Path_AStar(nullptr, Coord_Cell(Coord), building->Nearby_Location(), 1, MOVE_TEMP, -1);
 				if (distance && (distance < bestval || building->IsLeader)) {
 					best = building;
 					bestval = distance;

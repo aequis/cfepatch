@@ -2444,7 +2444,7 @@ TARGET InfantryClass::Greatest_Threat(ThreatType threat) const
 	**	Special hack to make Tanya not auto-fire if controlled by a
 	**	human player.
 	*/
-	if (*this == INFANTRY_TANYA && House->IsHuman) {
+	if (*this == INFANTRY_TANYA && House->IsHuman && !ActiveCFEPatchConfig.EnableTanyaGuard) {
 		return(TARGET_NONE);
 	}
 
