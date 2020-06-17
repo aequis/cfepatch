@@ -100,6 +100,7 @@ struct CFEPatchConfig
 	bool EnableInstantCapture = false;
 	bool WallsAlwaysHaveFullCost = true;
 	bool EnableAttackMove = false;
+	bool EnableTanyaGuard = false;
 
 	int  HarvyQueueJumpCutoff = 3;
 	int  OreGrowthScale = 1;
