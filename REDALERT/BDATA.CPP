@@ -3655,6 +3655,8 @@ OverlayType BuildingTypeClass::Overlay_Type() const
 		return OVERLAY_BARBWIRE_WALL;
 	case STRUCT_WOOD_WALL:
 		return OVERLAY_WOOD_WALL;
+	case STRUCT_FENCE:
+		return OVERLAY_FENCE;
 	default:
 		return OVERLAY_NONE;
 	}
