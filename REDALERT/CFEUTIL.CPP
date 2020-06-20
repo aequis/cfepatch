@@ -59,6 +59,7 @@ void Populate_CFE_Patch_Config_From_INI(const INIClass& ini)
 	GetSetting(ActiveCFEPatchConfig.OreGrowthScale			, "SETTINGS", "ORE_GROWTH_SCALE");
 	GetSetting(ActiveCFEPatchConfig.WallBuildLength			, "SETTINGS", "WALL_BUILD_LENGTH");
 	GetSetting(ActiveCFEPatchConfig.BuildingGapOffset		, "SETTINGS", "BUILDING_GAP_OFFSET");
+	GetSetting(ActiveCFEPatchConfig.OreCapacityOffset		, "SETTINGS", "ORE_CAPACITY_OFFSET");
 	GetSetting(ActiveCFEPatchConfig.WallsAlwaysHaveFullCost	, "SETTINGS", "WALLS_HAVE_FULL_COST");
 
 	//Clamp Wall Length between 1 (build at all) and 10 (buffer limits)

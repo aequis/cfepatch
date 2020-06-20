@@ -214,6 +214,12 @@ bool Init_Game(int , char * [])
 	*/
 	Bootstrap();
 
+	/*
+	** Init CFE Patch early to have all variables set,
+	** in case it's used while the game inits (offsets etc).
+	*/
+	Initialise_CFE_Patch_Config();
+
 	////////////////////////////////////////
 	// The editor needs to not start the mouse up. - 7/22/2019 JAS 
 	if (!RunningFromEditor)
@@ -426,19 +432,6 @@ bool Init_Game(int , char * [])
 	** dialogs are invoked.  (GameSpeed must be synchronized between systems.)
 	*/
 	Options.Load_Settings();
-
-	Initialise_CFE_Patch_Config();
-
-	if (ActiveCFEPatchConfig.BuildingGapOffset) {
-		for (int bindex = 0; bindex < BuildingTypes.Count(); ++bindex) {
-			BuildingTypeClass *building = BuildingTypes.Ptr(bindex);
-
-			building->Adjacent += ActiveCFEPatchConfig.BuildingGapOffset;
-			if (building->Adjacent < 0) {
-				building->Adjacent = 0;
-			}
-		}
-	}
 
 	/*
 	** Initialise the color lookup tables for the chronal vortex

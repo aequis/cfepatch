@@ -106,6 +106,7 @@ struct CFEPatchConfig
 	int  OreGrowthScale = 1;
 	int  WallBuildLength = 5;
 	int  BuildingGapOffset = 0;
+	int  OreCapacityOffset = 0;
 };
 
 extern CFEPatchConfig ActiveCFEPatchConfig;
