@@ -434,6 +434,23 @@ bool Init_Game(int , char * [])
 	Options.Load_Settings();
 
 	/*
+	** 06/20/2020 Root-Core - We have to patch building distance here, as otherwise the value would stack.
+	** This is caused by multiple INI files that alter the same buildings. (3+Offset, 3+Offset+Offset, etc..)
+	**
+	** And we can not patch BuildingGapOffset here, as it would get overridden later.
+	*/
+	for (int bindex = 0; bindex < BuildingTypes.Count(); ++bindex) {
+		BuildingTypeClass* building = BuildingTypes.Ptr(bindex);
+
+		if (ActiveCFEPatchConfig.BuildingGapOffset) {
+			building->Adjacent += ActiveCFEPatchConfig.BuildingGapOffset;
+			if (building->Adjacent < 0) {
+				building->Adjacent = 0;
+			}
+		}
+	}
+
+	/*
 	** Initialise the color lookup tables for the chronal vortex
 	*/
 	ChronalVortex.Stop();

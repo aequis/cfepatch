@@ -3802,6 +3802,7 @@ bool BuildingTypeClass::Read_INI(CCINIClass & ini)
 {
 	if (TechnoTypeClass::Read_INI(ini)) {
 		Speed = ini.Get_Bool(Name(), "WaterBound", (Speed == SPEED_FLOAT)) ? SPEED_FLOAT : SPEED_NONE;
+		Adjacent = ini.Get_Int(Name(), "Adjacent", Adjacent);
 		IsCaptureable = ini.Get_Bool(Name(), "Capturable", IsCaptureable);
 		IsPowered = ini.Get_Bool(Name(), "Powered", IsPowered);
 		IsBibbed = ini.Get_Bool(Name(), "Bib", IsBibbed);
@@ -3814,15 +3815,11 @@ bool BuildingTypeClass::Read_INI(CCINIClass & ini)
 			Power = 0;
 		}
 
-		Adjacent = ini.Get_Int(Name(), "Adjacent", Adjacent, ActiveCFEPatchConfig.BuildingGapOffset);
-		if (Adjacent < 0) {
-			Adjacent = 0;
-		}
-
 		Capacity = ini.Get_Int(Name(), "Storage", Capacity, ActiveCFEPatchConfig.OreCapacityOffset);
 		if (Capacity < 0) {
 			Capacity = 0;
 		}
+
 		return(true);
 	}
 	return(false);
