@@ -87,6 +87,7 @@ struct CFEPatchConfig
 	bool WallsAlwaysHaveFullCost = true;
 	bool EnableAttackMove = false;
 	bool EnableCommandoGuard = false;
+	bool EnableSafeSabotage = false;
 	int  BuildingGap = 2;
 	int  HarvyQueueJumpCutoff = 3;
 	int  TibGrowthScale = 1;
