@@ -2117,17 +2117,20 @@ COORDINATE FootClass::Likely_Coord(void) const
  *                                                                                             *
  * HISTORY:                                                                                    *
  *   13/06/2020 cfehunter : Created.                                                           *
+ *   22/06/2020 cfheunter : Use best by direct distance if no target is pathable               *
  *=============================================================================================*/
 BuildingClass* FootClass::Find_Docking_Bay(StructType b, bool friendly) const
 {
-	BuildingClass* best = 0;
+	BuildingClass* as_best = nullptr;
+	BuildingClass* direct_best = nullptr;
 	/*
 	**	First check to see if there are ANY buildings of the specified
 	**	type in thi house's inventory. If not, then don't bother to scan
 	**	for one.
 	*/
 	if (House->BScan & (1L << b)) {
-		int bestval = (std::numeric_limits<int>::max)();;
+		int as_bestval = (std::numeric_limits<int>::max)();
+		int direct_bestval = (std::numeric_limits<int>::max)();
 
 		const bool is_aircraft = What_Am_I() == RTTI_AIRCRAFT;
 
@@ -2151,13 +2154,18 @@ BuildingClass* FootClass::Find_Docking_Bay(StructType b, bool friendly) const
 				**	last qualifying building (as rated by distance), then record
 				**	this building and keep scanning.
 				*/
-				const int distance = is_aircraft ? Distance(building) :  Find_Path_AStar(nullptr, Coord_Cell(Coord), building->Nearby_Location(), 1, MOVE_NO, -1);
-				if (distance && (distance < bestval || building->IsLeader)) {
-					best = building;
-					bestval = distance;
+				const int direct_distance = Distance(building);
+				const int as_distance = is_aircraft ? direct_distance : Find_Path_AStar(nullptr, Coord_Cell(Coord), building->Nearby_Location(), 1, MOVE_NO, -1);
+				if (direct_distance && (direct_distance < direct_bestval || building->IsLeader)) {
+					direct_best = building;
+					direct_bestval = direct_distance;
+				}
+				if (as_distance && (as_distance < as_bestval || building->IsLeader)) {
+					as_best = building;
+					as_bestval = as_distance;
 				}
 			}
 		}
 	}
-	return best;
+	return as_best ? as_best : direct_best;
 }
