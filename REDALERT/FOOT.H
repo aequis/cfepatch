@@ -363,6 +363,9 @@ class FootClass :	public TechnoClass
 
 		virtual BuildingClass* Find_Docking_Bay(StructType b, bool friendly) const override;
 
+		void Set_Attack_Move(bool value) { IsAttackMoving = value; }
+		bool Is_Attack_Moving() const { return IsAttackMoving; }
+
 	private:
 		int Passable_Cell(CELL cell, FacingType face, int threat, MoveType threshhold) const;
 		PathType * Find_Path(CELL dest, FacingType *final_moves, int maxlen, MoveType threshhold);
@@ -383,10 +386,16 @@ class FootClass :	public TechnoClass
 		*/
 		COORDINATE HeadToCoord;
 
+		/* 16/06/2020 cfenunter
+		** I've stolen a byte of the save load padding for the attack moving flag.
+		** We are now down to 15
+		*/
+		bool IsAttackMoving : 1;
+
 		/*
 		** Some additional padding in case we need to add data to the class and maintain backwards compatibility for save/load
 		*/
-		unsigned char SaveLoadPadding[16];
+		unsigned char SaveLoadPadding[15];
 };
 
 #endif

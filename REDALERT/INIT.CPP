@@ -214,6 +214,12 @@ bool Init_Game(int , char * [])
 	*/
 	Bootstrap();
 
+	/*
+	** Init CFE Patch early to have all variables set,
+	** in case it's used while the game inits (offsets etc).
+	*/
+	Initialise_CFE_Patch_Config();
+
 	////////////////////////////////////////
 	// The editor needs to not start the mouse up. - 7/22/2019 JAS 
 	if (!RunningFromEditor)
@@ -427,12 +433,16 @@ bool Init_Game(int , char * [])
 	*/
 	Options.Load_Settings();
 
-	Initialise_CFE_Patch_Config();
+	/*
+	** 06/20/2020 Root-Core - We have to patch building distance here, as otherwise the value would stack.
+	** This is caused by multiple INI files that alter the same buildings. (3+Offset, 3+Offset+Offset, etc..)
+	**
+	** And we can not patch BuildingGapOffset here, as it would get overridden later.
+	*/
+	for (int bindex = 0; bindex < BuildingTypes.Count(); ++bindex) {
+		BuildingTypeClass* building = BuildingTypes.Ptr(bindex);
 
-	if (ActiveCFEPatchConfig.BuildingGapOffset) {
-		for (int bindex = 0; bindex < BuildingTypes.Count(); ++bindex) {
-			BuildingTypeClass *building = BuildingTypes.Ptr(bindex);
-
+		if (ActiveCFEPatchConfig.BuildingGapOffset) {
 			building->Adjacent += ActiveCFEPatchConfig.BuildingGapOffset;
 			if (building->Adjacent < 0) {
 				building->Adjacent = 0;

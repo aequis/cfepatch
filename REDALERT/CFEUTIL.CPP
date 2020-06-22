@@ -46,17 +46,21 @@ void Populate_CFE_Patch_Config_From_INI(const INIClass& ini)
 
 	//cfehunter 12/06/2020 It's really starting to get to the point where I should make feature flags
 	//Features
-	GetSetting(ActiveCFEPatchConfig.EnableASPathing, "FEATURES", "ASTAR_PATHING");
-	GetSetting(ActiveCFEPatchConfig.EnableOOMRepair, "FEATURES", "OOM_REPAIR");
-	GetSetting(ActiveCFEPatchConfig.EnableRallyPoints, "FEATURES", "RALLY_POINTS");
-	GetSetting(ActiveCFEPatchConfig.EnableHarvyQueueJump, "FEATURES", "HARVY_QUEUE_JUMP");
-	GetSetting(ActiveCFEPatchConfig.EnableInstantCapture, "FEATURES", "INSTANT_CAPTURE");
+	GetSetting(ActiveCFEPatchConfig.EnableASPathing			, "FEATURES", "ASTAR_PATHING");
+	GetSetting(ActiveCFEPatchConfig.EnableOOMRepair			, "FEATURES", "OOM_REPAIR");
+	GetSetting(ActiveCFEPatchConfig.EnableRallyPoints		, "FEATURES", "RALLY_POINTS");
+	GetSetting(ActiveCFEPatchConfig.EnableHarvyQueueJump	, "FEATURES", "HARVY_QUEUE_JUMP");
+	GetSetting(ActiveCFEPatchConfig.EnableInstantCapture	, "FEATURES", "INSTANT_CAPTURE");
+	GetSetting(ActiveCFEPatchConfig.EnableAttackMove		, "FEATURES", "ATTACK_MOVE");
+	GetSetting(ActiveCFEPatchConfig.EnableTanyaGuard		, "FEATURES", "TANYA_GUARD");
 
 	//Settings
-	GetSetting(ActiveCFEPatchConfig.HarvyQueueJumpCutoff, "SETTINGS", "QUEUE_JUMP_CUTOFF");
-	GetSetting(ActiveCFEPatchConfig.OreGrowthScale, "SETTINGS", "ORE_GROWTH_SCALE");
-	GetSetting(ActiveCFEPatchConfig.WallBuildLength, "SETTINGS", "WALL_BUILD_LENGTH");
-	GetSetting(ActiveCFEPatchConfig.BuildingGapOffset, "SETTINGS", "BUILDING_GAP_OFFSET");
+	GetSetting(ActiveCFEPatchConfig.HarvyQueueJumpCutoff	, "SETTINGS", "QUEUE_JUMP_CUTOFF");
+	GetSetting(ActiveCFEPatchConfig.OreGrowthScale			, "SETTINGS", "ORE_GROWTH_SCALE");
+	GetSetting(ActiveCFEPatchConfig.WallBuildLength			, "SETTINGS", "WALL_BUILD_LENGTH");
+	GetSetting(ActiveCFEPatchConfig.BuildingGapOffset		, "SETTINGS", "BUILDING_GAP_OFFSET");
+	GetSetting(ActiveCFEPatchConfig.OreCapacityOffset		, "SETTINGS", "ORE_CAPACITY_OFFSET");
+	GetSetting(ActiveCFEPatchConfig.WallsAlwaysHaveFullCost	, "SETTINGS", "WALLS_HAVE_FULL_COST");
 
 	//Clamp Wall Length between 1 (build at all) and 10 (buffer limits)
 	ActiveCFEPatchConfig.WallBuildLength = (std::max)(1, (std::min)(ActiveCFEPatchConfig.WallBuildLength, 10));

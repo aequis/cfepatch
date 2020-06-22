@@ -437,7 +437,12 @@ RadioMessageType BuildingClass::Receive_Message(RadioClass * from, RadioMessageT
 			TechnoClass::Receive_Message(from, message, param);
 			
 			//Rally the unit
-			Rally_Unit(static_cast<FootClass&>(*from));
+			if (Can_Have_Rally_Point())
+			{
+				if (!Rally_Unit(static_cast<FootClass&>(*from)))
+					return RADIO_RUN_AWAY;
+			}
+
 			return(RADIO_ROGER);
 
 		default:
@@ -914,9 +919,20 @@ bool BuildingClass::Unlimbo_Wall(COORDINATE coord)
 						{
 							adjcell = Adjacent_Cell(adjcell, dir);
 
+							//FluffyQuack 14/06/2020: If WallsAlwaysHaveFullCost is true then we charge the player for each extra piece. Abort with "insufficient funds" if player can't afford it
+							if (ActiveCFEPatchConfig.WallsAlwaysHaveFullCost && House->Available_Money() < Class->Cost_Of())
+							{
+								Speak(VOX_NO_CASH);
+								break;
+							}
+
 							//If we fail to create the overlay here, abort this direction and move on
 							if (!Create_Overlay_At(oclass, adjcell))
 								break;
+
+							//Pay the cost of this extra wall
+							if (ActiveCFEPatchConfig.WallsAlwaysHaveFullCost)
+								House->Spend_Money(Class->Cost_Of());
 						}
 					}
 				}

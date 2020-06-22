@@ -382,6 +382,10 @@ void MissionClass::Assign_Mission(MissionType order)
 	*/
 	if (order == MISSION_QMOVE) order = MISSION_MOVE;
 
+	if (order != MISSION_MOVE) {
+		static_cast<FootClass*>(this)->Set_Attack_Move(false);
+	}
+
 	if (order != MISSION_NONE && Mission != order)  {
 		MissionQueue = order;
 	}

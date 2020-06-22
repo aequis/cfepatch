@@ -3655,6 +3655,8 @@ OverlayType BuildingTypeClass::Overlay_Type() const
 		return OVERLAY_BARBWIRE_WALL;
 	case STRUCT_WOOD_WALL:
 		return OVERLAY_WOOD_WALL;
+	case STRUCT_FENCE:
+		return OVERLAY_FENCE;
 	default:
 		return OVERLAY_NONE;
 	}
@@ -3800,18 +3802,24 @@ bool BuildingTypeClass::Read_INI(CCINIClass & ini)
 {
 	if (TechnoTypeClass::Read_INI(ini)) {
 		Speed = ini.Get_Bool(Name(), "WaterBound", (Speed == SPEED_FLOAT)) ? SPEED_FLOAT : SPEED_NONE;
-		Capacity = ini.Get_Int(Name(), "Storage", Capacity);
 		Adjacent = ini.Get_Int(Name(), "Adjacent", Adjacent);
 		IsCaptureable = ini.Get_Bool(Name(), "Capturable", IsCaptureable);
 		IsPowered = ini.Get_Bool(Name(), "Powered", IsPowered);
 		IsBibbed = ini.Get_Bool(Name(), "Bib", IsBibbed);
 		IsUnsellable = ini.Get_Bool(Name(), "Unsellable", IsUnsellable);
 		IsBase = ini.Get_Bool(Name(), "BaseNormal", IsBase);
+
 		Power = ini.Get_Int(Name(), "Power", (Power > 0) ? Power : -Drain);
 		if (Power < 0) {
 			Drain = -Power;
 			Power = 0;
 		}
+
+		Capacity = ini.Get_Int(Name(), "Storage", Capacity, ActiveCFEPatchConfig.OreCapacityOffset);
+		if (Capacity < 0) {
+			Capacity = 0;
+		}
+
 		return(true);
 	}
 	return(false);
