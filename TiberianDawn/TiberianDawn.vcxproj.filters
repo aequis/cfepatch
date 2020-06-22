@@ -890,9 +890,6 @@
     <ClCompile Include="INFANTRY.CPP">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="INI.CPP">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="INIT.CPP">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -1332,6 +1329,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="XSTRAW.CPP">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RAINI.CPP">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -521,14 +521,8 @@ void DriveClass::Assign_Destination(TARGET target)
 	**	facility is currently not involved with some other unit (radio or unloading).
 	*/
 	if (b && *b == STRUCT_REPAIR) {
-		if (b->In_Radio_Contact() && !ActiveCFEPatchConfig.EnableRepairQueue) {
-			target = 0;
-		} //Just get in line if repair queues are enabled
-		else if (ActiveCFEPatchConfig.EnableRepairQueue) {
-			ArchiveTarget = b->As_Target();
-			FootClass::Assign_Destination(b->Nearby_Location());
-			Path[0] = FACING_NONE;
-			Transmit_Message(RADIO_QUEUE, b);
+		if (b->In_Radio_Contact() && (b->Contact_With_Whom() != this)) {
+			ArchiveTarget = target;
 		} else {
 
 			/*
@@ -1604,12 +1598,18 @@ void DriveClass::Mark_Track(COORDINATE headto, MarkType type)
 
 					if (TrackIndex < cellidx && cellidx != -1) {
 						COORDINATE offset = Smooth_Turn(ptr[cellidx].Offset, &dir);
-						Map[Coord_Cell(offset)].Flag.Occupy.Vehicle = value;
+						CELL cell = Coord_Cell(offset);
+						if ((unsigned)cell < MAP_CELL_TOTAL) {
+							Map[cell].Flag.Occupy.Vehicle = value;
+						}
 					}
 				}
 			}
 		}
-		Map[Coord_Cell(headto)].Flag.Occupy.Vehicle = value;
+		CELL cell = Coord_Cell(headto);
+		if ((unsigned)cell < MAP_CELL_TOTAL) {
+			Map[cell].Flag.Occupy.Vehicle = value;
+		}
 	}
 }
 

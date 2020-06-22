@@ -400,7 +400,7 @@
     <ClCompile Include="HOUSE.CPP" />
     <ClCompile Include="IDATA.CPP" />
     <ClCompile Include="INFANTRY.CPP" />
-    <ClCompile Include="INI.CPP" />
+    <ClCompile Include="RAINI.CPP" />
     <ClCompile Include="INIOLD.CPP" />
     <ClCompile Include="INIT.CPP" />
     <ClCompile Include="INT.CPP" />

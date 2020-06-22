@@ -354,7 +354,32 @@ RadioMessageType BuildingClass::Receive_Message(RadioClass * from, RadioMessageT
 				Begin_Mode(BSTATE_FULL);
 			}
 
-			if (Transmit_Message(RADIO_NEED_TO_MOVE, from) == RADIO_ROGER) {
+			/*
+			**	If this building is already in radio contact, then it might
+			**	be able to satisfy the request to load by bumping off any
+			**	preoccupying task.
+			*/
+			if (*this == STRUCT_REPAIR) {
+				if (Contact_With_Whom() != from) {
+					if (Transmit_Message(RADIO_ON_DEPOT) == RADIO_ROGER) {
+						if (Transmit_Message(RADIO_NEED_REPAIR) == RADIO_NEGATIVE) {
+							Transmit_Message(RADIO_RUN_AWAY);
+							Transmit_Message(RADIO_OVER_OUT);
+							return(RADIO_ROGER);
+						}
+					}
+				}
+			}
+
+			/*
+			**	Establish contact with the object if this building isn't already in contact
+			**	with another.
+			*/
+			if (!In_Radio_Contact()) {
+				Transmit_Message(RADIO_HELLO, from);
+			}
+
+			if (Transmit_Message(RADIO_NEED_TO_MOVE) == RADIO_ROGER) {
 				if (*this == STRUCT_HELIPAD) {
 					param = As_Target();
 				} else {
@@ -369,7 +394,7 @@ RadioMessageType BuildingClass::Receive_Message(RadioClass * from, RadioMessageT
 				/*
 				**	Tell the harvester to move to the docking pad of the refinery.
 				*/
-				if (Transmit_Message(RADIO_MOVE_HERE, param, from) == RADIO_YEA_NOW_WHAT) {
+				if (Transmit_Message(RADIO_MOVE_HERE, param) == RADIO_YEA_NOW_WHAT) {
 
 					/*
 					**	Since the harvester is already there, tell it to begin the backup
@@ -2046,7 +2071,7 @@ void BuildingClass::Drop_Debris(TARGET source)
 	CELL	cell;
 
 	/*
-	**	Special case for Moebius to run from destroyed technology
+	**	Special case for Chan to run from destroyed technology
 	**	building.
 	*/
 	if (GameToPlay == GAME_NORMAL && *this ==  STRUCT_MISSION && PlayerPtr->ActLike == HOUSE_BAD && Scenario == 10) {
@@ -2054,7 +2079,7 @@ void BuildingClass::Drop_Debris(TARGET source)
 
 		ScenarioInit++;
 		if (i->Unlimbo(Center_Coord(), DIR_N)) {
-			i->Trigger = TriggerClass::As_Pointer("CHAN");
+			i->Trigger = TriggerClass::As_Pointer("win");
 			i->Strength = Random_Pick(5, (int)i->Class->MaxStrength);
 			ScenarioInit--;
 			i->Scatter(0, true);
@@ -2062,6 +2087,7 @@ void BuildingClass::Drop_Debris(TARGET source)
 			i->Assign_Mission(MISSION_GUARD_AREA);
 		} else {
 			delete i;
+			PlayerPtr->Flag_To_Win();
 		}
 		ScenarioInit--;
 	}
@@ -3685,7 +3711,7 @@ bool BuildingClass::Toggle_Primary(void)
 bool BuildingClass::Captured(HouseClass * newowner)
 {
 	Validate();
-	if (Class->IsCaptureable && newowner != House) {
+	if (Can_Capture() && newowner != House) {
 		switch (Owner()) {
 			case HOUSE_GOOD:
 				Speak(VOX_GDI_CAPTURED);
@@ -3962,6 +3988,21 @@ bool BuildingClass::Can_Demolish(void) const
 bool BuildingClass::Can_Demolish_Unit(void) const
 {
 	return(*this == STRUCT_REPAIR && In_Radio_Contact() && Distance(Contact_With_Whom()) < 0x0080);
+}
+
+
+bool BuildingClass::Can_Capture(void) const
+{
+	bool can_capture = Class->IsCaptureable;
+	if (*this == STRUCT_EYE) {
+		// Don't allow the Advanced Comm Center to be capturable in skirmish, MP, or beyond scenario 13 in SP
+		if (GameToPlay == GAME_NORMAL) {
+			can_capture &= Scenario < 13;
+		} else {
+			can_capture = false;
+		}
+	}
+	return(can_capture);
 }
 
 
@@ -5182,7 +5223,8 @@ int BuildingClass::Mission_Unload(void)
 					**	Scatter everything around the weapon's factory door.
 					*/
 					for (FacingType f = FACING_FIRST; f < FACING_COUNT; f++) {
-						CellClass * cptr = &cellptr->Adjacent_Cell(f);
+						CellClass * cptr = cellptr->Adjacent_Cell(f);
+						if (!cptr) continue;
 						UnitClass * cellunit = cptr->Cell_Unit();
 						if ((cellunit && cellunit != unit) || cptr->Cell_Infantry()) {
 							cptr->Incoming(coord, true, true);
