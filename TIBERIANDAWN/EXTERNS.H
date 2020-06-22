@@ -82,7 +82,6 @@ struct CFEPatchConfig
 	bool EnableOOMRepair = false;
 	bool EnableRallyPoints = false;
 	bool EnableHarvyQueueJump = false;
-	bool EnableRepairQueue = false;
 	bool EnableHarvySelfRepair = false;
 	bool DisableCommandoAirstrikes = false;
 	bool WallsAlwaysHaveFullCost = true;

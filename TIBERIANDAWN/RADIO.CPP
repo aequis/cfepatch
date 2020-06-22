@@ -76,8 +76,7 @@ char const * RadioClass::Messages[RADIO_COUNT] = {
 	"Take this kick! You... You...",
 	"Take this punch! You... You...",
 	"Fancy a little fisticuffs, eh?",
-	"Scratch that",
-	"I'm waiting..."
+	"Scratch that"
 };
 
 

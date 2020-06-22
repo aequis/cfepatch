@@ -985,12 +985,11 @@ void On_Achievement_Event(const HouseClass* player_ptr, const char *achievement_
 bool CFE_Patch_Is_Cell_Friendly_To_House(const HousesType house, const CELL cell);
 bool CFE_Patch_Is_Cell_In_Radius_To_Friendly_House(const HousesType house, const CELL cell, const int radius);
 
-bool CFE_Patch_Can_Enter_Override(const ObjectClass& object);
 bool CFE_Patch_A10_Override(const ObjectTypeClass& object, const HousesType house);
 bool CFE_Patch_House_Has_Any_Buildings_In_Map(HouseClass& house);
 bool CFE_Patch_Is_Wall(const ObjectTypeClass& object);
 bool CFE_Patch_Can_Have_Rally_Point(const ObjectClass& object);
 bool CFE_Patch_Should_Extend_Walls();
 bool CFE_Patch_Should_Attack_Move(const TARGET whom, const TARGET target);
-bool CFE_Patch_Unit_Should_Rally(const FootClass& object);
+bool CFE_Patch_Unit_Should_Rally(const TechnoClass& object);
 void Initialise_CFE_Patch_Config();

@@ -2,15 +2,6 @@
 
 extern bool DLL_Export_Get_Input_Key_State(KeyNumType key);
 
-bool CFE_Patch_Can_Enter_Override(const ObjectClass& object)
-{
-	if (ActiveCFEPatchConfig.EnableRepairQueue && object.What_Am_I() == RTTI_BUILDING) {
-		const StructType buildingType = static_cast<const BuildingClass&>(object);
-		return buildingType == STRUCT_REPAIR;
-	}
-	return false;
-}
-
 //Disable A10s in missions if the player has no buildings
 bool CFE_Patch_A10_Override(const ObjectTypeClass& object, const HousesType house)
 {
@@ -100,7 +91,7 @@ bool CFE_Patch_Is_Cell_In_Radius_To_Friendly_House(const HousesType house, const
 	return false;
 }
 
-bool CFE_Patch_Unit_Should_Rally(const FootClass& object)
+bool CFE_Patch_Unit_Should_Rally(const TechnoClass& object)
 {
 	switch (object.What_Am_I())
 	{

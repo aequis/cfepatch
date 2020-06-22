@@ -269,11 +269,6 @@ RadioMessageType BuildingClass::Receive_Message(RadioClass * from, RadioMessageT
 
 		case RADIO_CAN_LOAD:
 			TechnoClass::Receive_Message(from, message, param);
-
-			//Always allow units to load if queueing is enabled and they'd otherwise be able to load
-			if (ActiveCFEPatchConfig.EnableRepairQueue && BState != BSTATE_CONSTRUCTION && Class->Type == STRUCT_REPAIR && (from->What_Am_I() == RTTI_UNIT || from->What_Am_I() == RTTI_AIRCRAFT))
-				return RADIO_ROGER;
-
 			if (BState == BSTATE_CONSTRUCTION || (!ScenarioInit && In_Radio_Contact())) return(RADIO_NEGATIVE);
 			switch (Class->Type) {
 				case STRUCT_AIRSTRIP:
@@ -363,7 +358,12 @@ RadioMessageType BuildingClass::Receive_Message(RadioClass * from, RadioMessageT
 				if (Contact_With_Whom() != from) {
 					if (Transmit_Message(RADIO_ON_DEPOT) == RADIO_ROGER) {
 						if (Transmit_Message(RADIO_NEED_REPAIR) == RADIO_NEGATIVE) {
-							Transmit_Message(RADIO_RUN_AWAY);
+							
+							//Attempt to send the unit to a rally point, if there is one
+							if (!Rally_Unit(*Contact_With_Whom()))
+							{
+								Transmit_Message(RADIO_RUN_AWAY);
+							}
 							Transmit_Message(RADIO_OVER_OUT);
 							return(RADIO_ROGER);
 						}
@@ -462,10 +462,6 @@ RadioMessageType BuildingClass::Receive_Message(RadioClass * from, RadioMessageT
 				if (Distance(from) < 0x0180) {
 					return(RADIO_ROGER);
 				}
-				else if (ActiveCFEPatchConfig.EnableRepairQueue) {
-					Transmit_Message(RADIO_UNTETHER);
-					Transmit_Message(RADIO_OVER_OUT);
-				}
 			}
 
 			//Turn off the refinery lights - LLL April 22, 2020
@@ -483,23 +479,6 @@ RadioMessageType BuildingClass::Receive_Message(RadioClass * from, RadioMessageT
 			}
 
 			return(RADIO_ROGER);
-
-		case RADIO_QUEUE:
-			if (Class->Type == STRUCT_REPAIR && ActiveCFEPatchConfig.EnableRepairQueue && In_Radio_Contact()) {
-				//If we have an idle unit on the pad, kick them out
-				FootClass& contact = static_cast<FootClass&>(*Contact_With_Whom());
-				if (contact.Health_Ratio() >= 0x0100 && Transmit_Message(RADIO_NEED_TO_MOVE) == RADIO_ROGER) {
-					if (!Rally_Unit(contact))
-					{
-						long exit_target = ::As_Target(Nearby_Location());
-						if (!Transmit_Message(RADIO_MOVE_HERE, exit_target) == RADIO_ROGER)
-							return RADIO_NEGATIVE;
-					}
-					Enter_Idle_Mode();
-				}
-				return RADIO_ROGER;
-			}
-			break;
 	}
 
 	/*
@@ -5632,7 +5611,7 @@ bool BuildingClass::Passes_Proximity_Check(CELL homecell)
  * HISTORY:                                                                                    *
  *   14/06/2020 cfehunter : Created.                                                           *
  *=============================================================================================*/
-bool BuildingClass::Rally_Unit(FootClass& unit)
+bool BuildingClass::Rally_Unit(TechnoClass& unit)
 {
 	if (Can_Have_Rally_Point() && CFE_Patch_Unit_Should_Rally(unit) && Target_Legal(RallyPoint))
 	{
