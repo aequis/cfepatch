@@ -77,6 +77,8 @@ bool Reconcile_Config_With_Default(const INIClass& default, INIClass& config)
 {
 	bool changed = false;
 	using KVPair = std::pair<const char*, const char*>;
+
+	//Add missing entries
 	for (const char* section : default)
 	{
 		for (KVPair entry : make_iterator_range(default.section_begin(section), default.section_end(section)))
@@ -87,6 +89,25 @@ bool Reconcile_Config_With_Default(const INIClass& default, INIClass& config)
 				changed = true;
 			}
 		}
+	}
+
+	//Remove spurious entries
+	std::vector<KVPair> to_remove;
+	for (const char* section : config)
+	{
+		for (KVPair entry : make_iterator_range(config.section_begin(section), config.section_end(section)))
+		{
+			if (!default.Is_Present(section, entry.first))
+			{
+				to_remove.push_back({ section, entry.first });
+				changed = true;
+			}
+		}
+	}
+
+	for (KVPair entry : to_remove)
+	{
+		config.Clear(entry.first, entry.second);
 	}
 
 	return changed;
@@ -123,7 +144,7 @@ void Initialise_CFE_Patch_Config()
 				//Write the modified ini to a temp file
 				const std::string write_path = ini_path + ".temp";
 				CCFileClass write_file(write_path.c_str());
-				if (write_file.Is_Available() && write_file.Open(WRITE))
+				if (write_file.Open(WRITE))
 				{
 					//If it was written successfully, overwrite the existing config
 					if (user_ini.Save(write_file))
